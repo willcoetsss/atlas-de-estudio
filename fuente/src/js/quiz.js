@@ -286,7 +286,7 @@ const QUIZ = {
         const nextIn = q.box != null ? `<div class="small muted" style="margin-top:4px">Nivel: ${LEVELS[STORE.level(q.key)].n}${q.ok ? ` · volverá dentro de ${fmtIv(INTERVALS_MIN[q.box] * (q.grade === 1 ? 0.4 : 1))}` : ' · volverá pronto'}</div>` : '';
         fb = `<div class="fb ${q.ok ? 'ok' : 'bad'}"><b>${verdict}</b> ${q.extra || ''} ${right}${more}${nextIn}</div>`;
       }
-      const media = q.flag ? `<div class="qflag">${flagSvg(q.flag)}</div>` : q.proj ? `<div class="figure" style="padding:6px">${projThumb(q.proj, 360, 220)}</div>` : '';
+      const media = q.flag ? flagBox(q.flag, isLandPhone() ? 110 : 180, "qflag") : q.proj ? `<div class="figure" style="padding:6px">${projThumb(q.proj, 360, 220)}</div>` : '';
       body = `<div class="qcard">
         <div class="row" style="justify-content:space-between"><span class="eyebrow">${esc(typeName)}</span><span class="lvl"><span class="dot" style="background:${LEVELS[lvl].c}"></span>${LEVELS[lvl].n}</span></div>
         <div class="qprompt">${q.prompt}</div>

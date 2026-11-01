@@ -4,7 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Atlas interactivo para estudiar países, capitales, banderas, accidentes geográficos y cartografía.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230e5a87'/%3E%3Cpath d='M2 16h28M16 2c5 4 5 24 0 28M16 2c-5 4-5 24 0 28' stroke='%23fff' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#fbfcfc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141f28" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Atlas">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:title" content="Atlas de Estudio">
+<meta property="og:description" content="Aprende países, capitales, banderas, accidentes geográficos y cartografía.">
+<meta property="og:image" content="icons/icon-512.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -28,7 +39,7 @@
   --f-display:"Alegreya",Georgia,"Times New Roman",serif;
   --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
-  --panel-w:390px; --bar-h:54px;
+  --panel-w:390px; --bar-h:54px; --logo-filter:none;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0e161d; --panel:#141f28; --panel2:#1a2833; --ink:#e3ebf0; --muted:#93a5b2; --line:#2a3b48;
@@ -39,7 +50,7 @@
   --ok:#5cc983; --ok-soft:#173726; --bad:#ff7a6a; --bad-soft:#3c1c18; --warn:#e6b64a; --warn-soft:#3a2f12;
   --m0:#3a4752; --m1:#c97a32; --m2:#c9ad32; --m3:#4f9e5a; --m4:#7fe0a6;
   --water-label:#9cc8ea; --range-label:#e8b98d; --region-label:#e0b48a; --peak:#f0e2d2;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.35); color-scheme:dark}}
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.35); --logo-filter:invert(1); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0e161d; --panel:#141f28; --panel2:#1a2833; --ink:#e3ebf0; --muted:#93a5b2; --line:#2a3b48;
   --accent:#5fb0e0; --accent-ink:#06131c; --accent-soft:#163246;
@@ -49,7 +60,7 @@
   --ok:#5cc983; --ok-soft:#173726; --bad:#ff7a6a; --bad-soft:#3c1c18; --warn:#e6b64a; --warn-soft:#3a2f12;
   --m0:#3a4752; --m1:#c97a32; --m2:#c9ad32; --m3:#4f9e5a; --m4:#7fe0a6;
   --water-label:#9cc8ea; --range-label:#e8b98d; --region-label:#e0b48a; --peak:#f0e2d2;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.35); color-scheme:dark}
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.35); --logo-filter:invert(1); color-scheme:dark}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;overflow:hidden}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:50;background:var(--panel)}
@@ -59,7 +70,10 @@ button{cursor:pointer}
 .app{display:grid;grid-template-rows:var(--bar-h) 1fr;height:100%}
 /* barra superior */
 .bar{display:flex;align-items:center;gap:14px;background:var(--panel);border-bottom:1px solid var(--line);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));position:relative;z-index:20;min-width:0}
-.brand{font-family:var(--f-display);font-weight:700;font-size:21px;letter-spacing:.01em;white-space:nowrap;display:flex;align-items:baseline;gap:8px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:21px;letter-spacing:.01em;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.logo{display:inline-block;height:38px;flex:none;line-height:0}
+.logo img{height:100%;width:auto;display:block;filter:var(--logo-filter)}
+.logo.big{height:150px}
 .brand small{font-family:var(--f-mono);font-size:10.5px;font-weight:400;color:var(--muted);letter-spacing:.06em}
 .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1}
 .tabs::-webkit-scrollbar{display:none}
@@ -78,6 +92,17 @@ button{cursor:pointer}
 .page{position:absolute;inset:0;overflow-y:auto;background:var(--bg);z-index:5}
 .page-inner{max-width:1080px;margin:0 auto;padding-block:22px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .sheet-handle{display:none}
+.main.nopanel{grid-template-columns:1fr}
+.main.nopanel .panel{display:none}
+.mapctl .ptog[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+/* aviso para girar el móvil */
+.rotate{display:none}
+@media (max-width:820px) and (orientation:portrait){html:not(.allow-portrait) .rotate{display:grid}}
+.rotate{position:fixed;inset:0;z-index:100;background:var(--bg);place-items:center;text-align:center;padding:24px max(24px,env(safe-area-inset-left,0px))}
+.rotate .in{display:grid;gap:14px;justify-items:center;max-width:320px}
+.rotate .phone{color:var(--accent);animation:rot 2.4s ease-in-out infinite}
+@keyframes rot{0%,25%{transform:rotate(0)}55%,100%{transform:rotate(-90deg)}}
+.rotate h2{font-size:24px}
 /* controles del mapa */
 .mapctl{position:absolute;right:calc(12px + env(safe-area-inset-right,0px));top:12px;display:flex;flex-direction:column;gap:6px;z-index:4}
 .mapctl button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);font-size:18px;line-height:1;color:var(--ink)}
@@ -87,7 +112,7 @@ button{cursor:pointer}
 .sugg{margin-top:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);max-height:300px;overflow:auto}
 .sugg button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:7px 12px}
 .sugg button:hover,.sugg button.on{background:var(--accent-soft)}
-.sugg img{width:24px;height:18px;border-radius:2px;object-fit:cover;box-shadow:0 0 0 1px var(--line)}
+.sugg img{width:26px;height:18px;object-fit:contain;filter:drop-shadow(0 0 .6px rgba(0,0,0,.5))}
 .sugg small{color:var(--muted);margin-left:auto}
 .legend{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);font-size:13.5px;max-width:300px}
 .legend summary{padding:8px 12px;cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px}
@@ -169,8 +194,9 @@ h3{font-size:18px;font-weight:700}
 a.chip{color:var(--ink);text-decoration:none}
 a.chip:hover{background:var(--panel2)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.flag-big{width:100%;max-width:220px;aspect-ratio:4/3;border-radius:6px;box-shadow:0 0 0 1px var(--line),var(--shadow);display:block;background:var(--panel2)}
-.flag-big svg,.flagbox svg{width:100%;height:100%;display:block}
+.flagf{display:block;line-height:0;max-width:100%}
+.flagf.inl{display:inline-block;flex:none;vertical-align:middle}
+.flagf svg,.flagbox svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 .8px rgba(0,0,0,.7))}
 .facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px}
 .facts dt{color:var(--muted)}
 .facts dd{margin:0;min-width:0}
@@ -192,7 +218,7 @@ a.chip:hover{background:var(--panel2)}
 .qcard{display:grid;gap:14px}
 .qprompt{font-family:var(--f-display);font-size:25px;font-weight:700;line-height:1.2}
 .qprompt .hint{display:block;font-family:var(--f-body);font-size:14px;font-weight:400;color:var(--muted);margin-top:4px}
-.qflag{width:100%;max-width:300px;aspect-ratio:4/3;border-radius:6px;box-shadow:0 0 0 1px var(--line),var(--shadow);overflow:hidden}
+.qflag{display:block}
 .opts{display:grid;gap:8px}
 .opt{display:flex;gap:10px;align-items:center;text-align:left;border:1.5px solid var(--line);background:var(--panel);border-radius:11px;padding:11px 13px;font-size:16.5px;font-weight:500}
 .opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
@@ -202,7 +228,7 @@ a.chip:hover{background:var(--panel2)}
 .opt:disabled{cursor:default}
 .opts.flags{grid-template-columns:1fr 1fr}
 .opt.flagopt{padding:6px;display:block}
-.opt.flagopt .flagbox{aspect-ratio:4/3;border-radius:4px;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
+.opt.flagopt .flagbox{aspect-ratio:4/3;padding:2px}
 .answer-in{display:flex;gap:8px}
 .answer-in input{flex:1;min-width:0;padding:11px 13px;border-radius:11px;border:1.5px solid var(--line);background:var(--panel);font-size:17px}
 .answer-in input:focus{border-color:var(--accent);outline:none}
@@ -251,7 +277,7 @@ textarea{width:100%;min-height:120px;font-family:var(--f-mono);font-size:12px;bo
 .svgtxt{font-family:var(--f-body);fill:var(--ink)}
 .svgmut{font-family:var(--f-body);fill:var(--muted)}
 .loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--bg);z-index:30;font-family:var(--f-display);font-size:20px;color:var(--muted)}
-@media (max-width:820px){
+@media (max-width:820px) and (orientation:portrait){
   :root{--bar-h:auto}
   .app{grid-template-rows:auto 1fr}
   .bar{flex-wrap:wrap;padding-block:8px;gap:6px 10px}
@@ -269,12 +295,42 @@ textarea{width:100%;min-height:120px;font-family:var(--f-mono);font-size:12px;bo
   .barrow{grid-template-columns:110px 1fr 44px}
   .qprompt{font-size:21px}
 }
+/* móvil en horizontal: barra compacta, mapa a la izquierda y panel lateral plegable */
+@media (max-height:540px) and (orientation:landscape){
+  :root{--bar-h:42px;--panel-w:min(42vw,360px)}
+  body{font-size:14.5px}
+  .bar{gap:8px;padding-left:max(10px,env(safe-area-inset-left,0px))}
+  .brand{font-size:15.5px}
+  .brand .logo{height:32px}
+  .brand small,.sync{display:none}
+  .tab{padding:4px 9px;font-size:14px}
+  .iconbtn{width:30px;height:30px}
+  .panel{padding-block:10px 16px;padding-left:14px;padding-right:max(12px,env(safe-area-inset-right,0px))}
+  .stack{gap:9px}
+  h2{font-size:21px}
+  .qprompt{font-size:18px}
+  .qcard{gap:9px}
+  .opts{grid-template-columns:1fr 1fr;gap:6px}
+  .opt{padding:7px 9px;font-size:14.5px}
+  .opts.flags{grid-template-columns:1fr 1fr}
+  .facts{font-size:14px}
+  .searchbox{top:8px;left:calc(8px + env(safe-area-inset-left,0px));width:min(230px,45%)}
+  .searchbox input{padding:6px 10px 6px 30px}
+  .searchbox svg{top:8px;left:10px}
+  .mapctl{top:8px;right:8px;gap:4px}
+  .mapctl button{width:30px;height:30px;font-size:16px}
+  .legend{font-size:12.5px;max-width:230px;bottom:8px;left:calc(8px + env(safe-area-inset-left,0px))}
+  .legend summary{padding:5px 10px}
+  .split{grid-template-columns:1fr}
+  .barrow{grid-template-columns:110px 1fr 44px}
+  .page-inner{padding-block:14px 40px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
 <div class="app" id="app">
   <header class="bar">
-    <div class="brand">Atlas de Estudio <small>EQUAL EARTH · NATURAL EARTH</small></div>
+    <div class="brand"><span class="logo" aria-hidden="true"><img src="icons/logo-512.png" alt=""></span>Atlas de Estudio <small>EQUAL EARTH · NATURAL EARTH</small></div>
     <nav class="tabs" role="tablist" aria-label="Secciones">
       <button class="tab" role="tab" data-tab="explorar" aria-selected="true">Explorar</button>
       <button class="tab" role="tab" data-tab="examen">Examen</button>
@@ -295,6 +351,7 @@ textarea{width:100%;min-height:120px;font-family:var(--f-mono);font-size:12px;bo
       <div class="mapctl">
         <button id="zin" title="Acercar" aria-label="Acercar">+</button>
         <button id="zout" title="Alejar" aria-label="Alejar">−</button>
+        <button id="ptog" class="ptog" title="Mostrar u ocultar el panel" aria-label="Mostrar u ocultar el panel" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg></button>
         <button id="zhome" title="Ver el mundo" aria-label="Ver el mundo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg></button>
       </div>
       <details class="legend" id="legend" open></details>
@@ -304,7 +361,15 @@ textarea{width:100%;min-height:120px;font-family:var(--f-mono);font-size:12px;bo
     <aside class="panel" id="panel"><button class="sheet-handle" id="handle" aria-label="Mostrar u ocultar panel"><span></span></button><div id="panelBody"></div></aside>
     <div class="page" id="page" hidden></div>
   </div>
-  <div class="loading" id="loading">Cargando el atlas…</div>
+  <div class="loading" id="loading"><div style="display:grid;gap:12px;justify-items:center"><span class="logo big" aria-hidden="true"><img src="icons/logo-512.png" alt=""></span>Cargando el atlas…</div></div>
+  <div class="rotate" id="rotate" role="dialog" aria-label="Gira el móvil"><div class="in">
+    <span class="logo big" aria-hidden="true"><img src="icons/logo-512.png" alt=""></span>
+    <svg class="phone" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+    <h2>Gira el móvil</h2>
+    <p class="muted">El atlas está pensado para usarse en horizontal: así el mapa ocupa casi toda la pantalla y el panel queda a un lado.</p>
+    <button class="btn primary" id="fsLand" hidden>Pantalla completa en horizontal</button>
+    <button class="linkbtn small" id="keepPortrait">Seguir en vertical</button>
+  </div></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -333,7 +398,9 @@ const fmtArea = a => a ? nf.format(Math.round(a)) + ' km²' : '—';
 const verif = s => esc(s).replace(/\s*\(verificar[^)]*\)/g, ' <span class="chk" title="Dato muy reciente o cambiante: compruébalo">verificar</span>');
 const debounce = (f, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 const now = () => Date.now();
-const isMobile = () => matchMedia('(max-width:820px)').matches;
+const isSheet = () => matchMedia('(max-width:820px) and (orientation:portrait)').matches;
+const isLandPhone = () => matchMedia('(max-height:540px) and (orientation:landscape)').matches;
+const isMobile = () => isSheet() || isLandPhone();
 function toast(msg, ms = 1800) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, ms); }
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
@@ -384,6 +451,9 @@ function largestPoly(f) {
 function baseId(id) { const f = D.byId[id]; const p = f && f.properties || {}; if (p.kind === 'far') return p.sov; return id; }
 function geoRef(ref) { if (ref.startsWith('c:')) return D.byId[ref.slice(2)]; return D.extra[ref]; }
 function flagSvg(id) { const e = D.info[id]; return e && e.iso2 && D.flags[e.iso2] ? D.flags[e.iso2] : '<svg viewBox="0 0 4 3"><rect width="4" height="3" fill="#ccc"/></svg>'; }
+const _fr = {};
+function flagRatio(id) { const e = D.info[id]; const k = e && e.iso2; if (!k || !D.flags[k]) return 4 / 3; if (_fr[k]) return _fr[k]; const m = D.flags[k].match(/viewBox="([^"]+)"/); let r = 4 / 3; if (m) { const v = m[1].trim().split(/[\s,]+/).map(Number); if (v[2] > 0 && v[3] > 0) r = v[2] / v[3]; } return (_fr[k] = r); }
+function flagBox(id, h, cls = '') { const r = flagRatio(id); return `<span class="flagf ${cls}" style="aspect-ratio:${r.toFixed(4)};width:min(100%,${Math.round(h * r)}px)">${flagSvg(id)}</span>`; }
 function flagUrl(id) { const s = flagSvg(id); return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s); }
 function nameOf(id) { const e = D.info[id]; return e ? e.name : id; }
 function unionBounds(ids) {
@@ -554,7 +624,7 @@ const MAP = {
     this.zoom.scaleExtent([this.fitK * 0.8, this.fitK * 120]).translateExtent([[-D.W * 0.25, -D.H * 0.35], [D.W * 1.25, D.H * 1.35]]);
     if (first) this.home(0);
   },
-  pad() { const m = isMobile(); const p = $('#panel'); const bottom = m && !p.hidden && !p.classList.contains('collapsed') ? p.getBoundingClientRect().height : 0; return { t: m ? 60 : 56, r: 54, b: bottom + 20, l: 20 }; },
+  pad() { const m = isSheet(); const p = $('#panel'); const bottom = m && !p.hidden && !p.classList.contains('collapsed') ? p.getBoundingClientRect().height : 0; return { t: m ? 60 : 56, r: 54, b: bottom + 20, l: 20 }; },
   fit(b, { dur = 750, maxK = 60, minK = 1 } = {}) {
     if (!b || !isFinite(b[0][0])) return;
     const p = this.pad(), w = Math.max(40, this.vw - p.l - p.r), hh = Math.max(40, this.vh - p.t - p.b);
@@ -622,7 +692,7 @@ const MAP = {
 
 /* ============ panel y navegación ============ */
 const APP = { tab: null, tabs: {} };
-function setPanel(html) { const b = $('#panelBody'); b.innerHTML = html; $('#panel').scrollTop = 0; $('#panel').classList.remove('collapsed'); }
+function setPanel(html) { const b = $('#panelBody'); b.innerHTML = html; $('#panel').scrollTop = 0; if (APP.syncTog) APP.syncTog(); }
 function tooltip(html, ev) {
   const tip = $('#tip'); if (!html) { tip.hidden = true; return; }
   tip.innerHTML = html; tip.hidden = false;
@@ -647,6 +717,15 @@ function switchTab(name) {
 function initShell() {
   $$('.tab').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
   $('#handle').onclick = () => $('#panel').classList.toggle('collapsed');
+  const ptog = $('#ptog');
+  const syncTog = () => ptog.setAttribute('aria-pressed', isSheet() ? $('#panel').classList.contains('collapsed') : $('#main').classList.contains('nopanel'));
+  ptog.onclick = () => { if (isSheet()) $('#panel').classList.toggle('collapsed'); else $('#main').classList.toggle('nopanel'); syncTog(); setTimeout(() => MAP.resize(), 40); };
+  APP.syncTog = syncTog;
+  try { if (sessionStorage.getItem('atlas-portrait')) document.documentElement.classList.add('allow-portrait'); } catch (e) { }
+  $('#keepPortrait').onclick = () => { document.documentElement.classList.add('allow-portrait'); try { sessionStorage.setItem('atlas-portrait', '1'); } catch (e) { } setTimeout(() => MAP.resize(), 40); };
+  const fs = $('#fsLand');
+  if (document.fullscreenEnabled && screen.orientation && screen.orientation.lock) fs.hidden = false;
+  fs.onclick = async () => { try { await document.documentElement.requestFullscreen(); await screen.orientation.lock('landscape'); } catch (e) { toast('Tu navegador no deja girar la pantalla: gira el móvil a mano'); } };
   const th = $('#themeBtn');
   const applyTheme = v => { if (v) document.documentElement.setAttribute('data-theme', v); else document.documentElement.removeAttribute('data-theme'); };
   applyTheme(lsGet('atlas-theme'));
@@ -808,7 +887,7 @@ const EXPLORE = {
     setPanel(`<div class="stack">
       <div class="eyebrow">${esc(isState ? [e.reg, e.state && D.info[id].kind !== 'state' ? '' : ''].filter(Boolean).join(' · ') : (e.kind === 'far' ? 'Parte lejana de un país' : 'Territorio'))}</div>
       <div><h2>${esc(e.name)}</h2>${e.off && e.off !== e.name ? `<div class="muted small">${esc(e.off)}</div>` : ''}</div>
-      <div class="flag-big">${flagSvg(id)}</div>
+      ${flagBox(id, isLandPhone() ? 90 : 140, "flag-big")}
       ${sov}
       ${e.note ? `<p class="small">${esc(e.note)}</p>` : ''}
       <dl class="facts">${facts.map(f => `<dt>${f[0]}</dt><dd>${f[1]}</dd>`).join('')}</dl>
@@ -1520,7 +1599,7 @@ const QUIZ = {
         const nextIn = q.box != null ? `<div class="small muted" style="margin-top:4px">Nivel: ${LEVELS[STORE.level(q.key)].n}${q.ok ? ` · volverá dentro de ${fmtIv(INTERVALS_MIN[q.box] * (q.grade === 1 ? 0.4 : 1))}` : ' · volverá pronto'}</div>` : '';
         fb = `<div class="fb ${q.ok ? 'ok' : 'bad'}"><b>${verdict}</b> ${q.extra || ''} ${right}${more}${nextIn}</div>`;
       }
-      const media = q.flag ? `<div class="qflag">${flagSvg(q.flag)}</div>` : q.proj ? `<div class="figure" style="padding:6px">${projThumb(q.proj, 360, 220)}</div>` : '';
+      const media = q.flag ? flagBox(q.flag, isLandPhone() ? 110 : 180, "qflag") : q.proj ? `<div class="figure" style="padding:6px">${projThumb(q.proj, 360, 220)}</div>` : '';
       body = `<div class="qcard">
         <div class="row" style="justify-content:space-between"><span class="eyebrow">${esc(typeName)}</span><span class="lvl"><span class="dot" style="background:${LEVELS[lvl].c}"></span>${LEVELS[lvl].n}</span></div>
         <div class="qprompt">${q.prompt}</div>
@@ -1677,7 +1756,7 @@ const PHYS = {
     const groups = PHY_GROUPS.map(g => ({ g, items: list.filter(f => g.c.includes(D.pitems[f].c)).sort((a, b) => (D.pitems[a].r - D.pitems[b].r) || ((D.pitems[b].e || 0) - (D.pitems[a].e || 0))) })).filter(x => x.items.length);
     setPanel(`<div class="stack">
       <div class="eyebrow">Accidentes geográficos</div>
-      <div class="row" style="gap:12px;flex-wrap:nowrap"><div style="width:54px;flex:none;border-radius:4px;overflow:hidden;box-shadow:0 0 0 1px var(--line)">${flagSvg(id)}</div><h2>${esc(e.name)}</h2></div>
+      <div class="row" style="gap:12px;flex-wrap:nowrap">${flagBox(id, 34, "inl")}<h2>${esc(e.name)}</h2></div>
       ${groups.map(({ g, items }) => `<div class="sec"><h4>${g.n} <span class="muted">${items.length}</span></h4><ul class="list">${items.map(f => { const it = D.pitems[f]; return `<li><button data-f="${f}"><span>${esc(it.n)}</span><span class="meta">${it.e ? nf.format(it.e) + ' m' : esc(it.c)}</span></button></li>`; }).join('')}</ul></div>`).join('') || '<p class="muted">No hay accidentes registrados para este territorio a esta escala.</p>'}
       <div class="row"><button class="btn sm" id="toPol">Ver ficha política</button></div>
     </div>`);
@@ -1748,7 +1827,7 @@ const PROG = {
       </div>
       <div class="grid2">
         <div class="card stack"><h3>Dominado por continente</h3><p class="small muted">${esc(tname)}</p><div class="bars">${bars.map(b => `<div class="barrow"><span>${b.r}</span>${stackBar(b.c)}<span class="num">${b.pct} %</span></div>`).join('')}</div></div>
-        <div class="card stack"><h3>Los países que más fallas</h3>${worst.length ? `<ul class="list">${worst.map(([id, o]) => `<li><button data-go="${id}"><span style="width:26px;flex:none;border-radius:2px;overflow:hidden;box-shadow:0 0 0 1px var(--line);display:inline-block;line-height:0">${flagSvg(id)}</span><span>${esc(nameOf(id))}<br><span class="small muted">${Object.keys(o.modes).map(m => POL_TYPES.find(t => t.m === m).n).join(' · ')}</span></span><span class="meta">${o.bad} fallos</span></button></li>`).join('')}</ul>` : '<p class="muted small">Todavía no hay fallos registrados. Empieza en la pestaña Examen.</p>'}</div>
+        <div class="card stack"><h3>Los países que más fallas</h3>${worst.length ? `<ul class="list">${worst.map(([id, o]) => `<li><button data-go="${id}">${flagBox(id, 18, "inl")}<span>${esc(nameOf(id))}<br><span class="small muted">${Object.keys(o.modes).map(m => POL_TYPES.find(t => t.m === m).n).join(' · ')}</span></span><span class="meta">${o.bad} fallos</span></button></li>`).join('')}</ul>` : '<p class="muted small">Todavía no hay fallos registrados. Empieza en la pestaña Examen.</p>'}</div>
       </div>
       <div class="grid2">
         <div class="card stack"><h3>Accidentes geográficos</h3>${stackBar(pc)}<p class="small muted">${pc[3]} dominados, ${pc[2]} repasando, ${pc[1]} aprendiendo.</p>${physWorst.length ? `<div class="small"><b>Más fallados:</b> ${physWorst.map(k => { const [m, id] = k.split('|'); return esc(m === 'ps' ? 'mares de ' + nameOf(id) : (D.pitems[id] || {}).n || id); }).join(', ')}</div>` : ''}</div>

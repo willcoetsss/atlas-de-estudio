@@ -84,7 +84,18 @@ const flagDir = G + 'node_modules/flag-icons/flags/4x3/';
 const flags = {};
 const need = new Set(Object.values(info).map(e => e.iso2).filter(Boolean));
 for (const k of need) { const p = flagDir + k + '.svg'; if (fs.existsSync(p)) flags[k] = fs.readFileSync(p, 'utf8').replace(/\s*\n\s*/g, ' '); else console.log('no flag', k); }
-fs.writeFileSync(O + 'flags.json', JSON.stringify(flags));
+// banderas con su proporción oficial (hjnilsson/country-flags, dominio público), optimizadas con svgo
+const offDir = G + 'dl/flags_min/';
+const flagsOff = {};
+for (const k of Object.keys(flags)) {
+  const p = offDir + k + '.svg';
+  let svg = fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : flags[k];
+  svg = svg.replace(/<title>[\s\S]*?<\/title>/g, '').replace(/<desc>[\s\S]*?<\/desc>/g, '').replace(/<svg([^>]*?)\s(width|height)="[^"]*"/g, '<svg$1').replace(/<svg([^>]*?)\s(width|height)="[^"]*"/g, '<svg$1');
+  // prefijo de ids para que varias banderas en la misma página no choquen
+  svg = svg.replace(/\bid="([^"]+)"/g, (m, i) => `id="f${k}-${i}"`).replace(/url\(#([^)]+)\)/g, (m, i) => `url(#f${k}-${i})`).replace(/href="#([^"]+)"/g, (m, i) => `href="#f${k}-${i}"`);
+  flagsOff[k] = svg;
+}
+fs.writeFileSync(O + 'flags.json', JSON.stringify(flagsOff));
 // flag similarity
 await initWasm(fs.readFileSync(G + 'node_modules/@resvg/resvg-wasm/index_bg.wasm'));
 const vec = {};

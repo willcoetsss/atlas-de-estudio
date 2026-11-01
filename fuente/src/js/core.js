@@ -20,7 +20,9 @@ const fmtArea = a => a ? nf.format(Math.round(a)) + ' km²' : '—';
 const verif = s => esc(s).replace(/\s*\(verificar[^)]*\)/g, ' <span class="chk" title="Dato muy reciente o cambiante: compruébalo">verificar</span>');
 const debounce = (f, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 const now = () => Date.now();
-const isMobile = () => matchMedia('(max-width:820px)').matches;
+const isSheet = () => matchMedia('(max-width:820px) and (orientation:portrait)').matches;
+const isLandPhone = () => matchMedia('(max-height:540px) and (orientation:landscape)').matches;
+const isMobile = () => isSheet() || isLandPhone();
 function toast(msg, ms = 1800) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, ms); }
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
@@ -71,6 +73,9 @@ function largestPoly(f) {
 function baseId(id) { const f = D.byId[id]; const p = f && f.properties || {}; if (p.kind === 'far') return p.sov; return id; }
 function geoRef(ref) { if (ref.startsWith('c:')) return D.byId[ref.slice(2)]; return D.extra[ref]; }
 function flagSvg(id) { const e = D.info[id]; return e && e.iso2 && D.flags[e.iso2] ? D.flags[e.iso2] : '<svg viewBox="0 0 4 3"><rect width="4" height="3" fill="#ccc"/></svg>'; }
+const _fr = {};
+function flagRatio(id) { const e = D.info[id]; const k = e && e.iso2; if (!k || !D.flags[k]) return 4 / 3; if (_fr[k]) return _fr[k]; const m = D.flags[k].match(/viewBox="([^"]+)"/); let r = 4 / 3; if (m) { const v = m[1].trim().split(/[\s,]+/).map(Number); if (v[2] > 0 && v[3] > 0) r = v[2] / v[3]; } return (_fr[k] = r); }
+function flagBox(id, h, cls = '') { const r = flagRatio(id); return `<span class="flagf ${cls}" style="aspect-ratio:${r.toFixed(4)};width:min(100%,${Math.round(h * r)}px)">${flagSvg(id)}</span>`; }
 function flagUrl(id) { const s = flagSvg(id); return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s); }
 function nameOf(id) { const e = D.info[id]; return e ? e.name : id; }
 function unionBounds(ids) {
@@ -241,7 +246,7 @@ const MAP = {
     this.zoom.scaleExtent([this.fitK * 0.8, this.fitK * 120]).translateExtent([[-D.W * 0.25, -D.H * 0.35], [D.W * 1.25, D.H * 1.35]]);
     if (first) this.home(0);
   },
-  pad() { const m = isMobile(); const p = $('#panel'); const bottom = m && !p.hidden && !p.classList.contains('collapsed') ? p.getBoundingClientRect().height : 0; return { t: m ? 60 : 56, r: 54, b: bottom + 20, l: 20 }; },
+  pad() { const m = isSheet(); const p = $('#panel'); const bottom = m && !p.hidden && !p.classList.contains('collapsed') ? p.getBoundingClientRect().height : 0; return { t: m ? 60 : 56, r: 54, b: bottom + 20, l: 20 }; },
   fit(b, { dur = 750, maxK = 60, minK = 1 } = {}) {
     if (!b || !isFinite(b[0][0])) return;
     const p = this.pad(), w = Math.max(40, this.vw - p.l - p.r), hh = Math.max(40, this.vh - p.t - p.b);
@@ -309,7 +314,7 @@ const MAP = {
 
 /* ============ panel y navegación ============ */
 const APP = { tab: null, tabs: {} };
-function setPanel(html) { const b = $('#panelBody'); b.innerHTML = html; $('#panel').scrollTop = 0; $('#panel').classList.remove('collapsed'); }
+function setPanel(html) { const b = $('#panelBody'); b.innerHTML = html; $('#panel').scrollTop = 0; if (APP.syncTog) APP.syncTog(); }
 function tooltip(html, ev) {
   const tip = $('#tip'); if (!html) { tip.hidden = true; return; }
   tip.innerHTML = html; tip.hidden = false;
@@ -334,6 +339,15 @@ function switchTab(name) {
 function initShell() {
   $$('.tab').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
   $('#handle').onclick = () => $('#panel').classList.toggle('collapsed');
+  const ptog = $('#ptog');
+  const syncTog = () => ptog.setAttribute('aria-pressed', isSheet() ? $('#panel').classList.contains('collapsed') : $('#main').classList.contains('nopanel'));
+  ptog.onclick = () => { if (isSheet()) $('#panel').classList.toggle('collapsed'); else $('#main').classList.toggle('nopanel'); syncTog(); setTimeout(() => MAP.resize(), 40); };
+  APP.syncTog = syncTog;
+  try { if (sessionStorage.getItem('atlas-portrait')) document.documentElement.classList.add('allow-portrait'); } catch (e) { }
+  $('#keepPortrait').onclick = () => { document.documentElement.classList.add('allow-portrait'); try { sessionStorage.setItem('atlas-portrait', '1'); } catch (e) { } setTimeout(() => MAP.resize(), 40); };
+  const fs = $('#fsLand');
+  if (document.fullscreenEnabled && screen.orientation && screen.orientation.lock) fs.hidden = false;
+  fs.onclick = async () => { try { await document.documentElement.requestFullscreen(); await screen.orientation.lock('landscape'); } catch (e) { toast('Tu navegador no deja girar la pantalla: gira el móvil a mano'); } };
   const th = $('#themeBtn');
   const applyTheme = v => { if (v) document.documentElement.setAttribute('data-theme', v); else document.documentElement.removeAttribute('data-theme'); };
   applyTheme(lsGet('atlas-theme'));

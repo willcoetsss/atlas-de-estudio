@@ -95,7 +95,7 @@ const PHYS = {
     const groups = PHY_GROUPS.map(g => ({ g, items: list.filter(f => g.c.includes(D.pitems[f].c)).sort((a, b) => (D.pitems[a].r - D.pitems[b].r) || ((D.pitems[b].e || 0) - (D.pitems[a].e || 0))) })).filter(x => x.items.length);
     setPanel(`<div class="stack">
       <div class="eyebrow">Accidentes geográficos</div>
-      <div class="row" style="gap:12px;flex-wrap:nowrap"><div style="width:54px;flex:none;border-radius:4px;overflow:hidden;box-shadow:0 0 0 1px var(--line)">${flagSvg(id)}</div><h2>${esc(e.name)}</h2></div>
+      <div class="row" style="gap:12px;flex-wrap:nowrap">${flagBox(id, 34, "inl")}<h2>${esc(e.name)}</h2></div>
       ${groups.map(({ g, items }) => `<div class="sec"><h4>${g.n} <span class="muted">${items.length}</span></h4><ul class="list">${items.map(f => { const it = D.pitems[f]; return `<li><button data-f="${f}"><span>${esc(it.n)}</span><span class="meta">${it.e ? nf.format(it.e) + ' m' : esc(it.c)}</span></button></li>`; }).join('')}</ul></div>`).join('') || '<p class="muted">No hay accidentes registrados para este territorio a esta escala.</p>'}
       <div class="row"><button class="btn sm" id="toPol">Ver ficha política</button></div>
     </div>`);

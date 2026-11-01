@@ -140,7 +140,7 @@ const EXPLORE = {
     setPanel(`<div class="stack">
       <div class="eyebrow">${esc(isState ? [e.reg, e.state && D.info[id].kind !== 'state' ? '' : ''].filter(Boolean).join(' · ') : (e.kind === 'far' ? 'Parte lejana de un país' : 'Territorio'))}</div>
       <div><h2>${esc(e.name)}</h2>${e.off && e.off !== e.name ? `<div class="muted small">${esc(e.off)}</div>` : ''}</div>
-      <div class="flag-big">${flagSvg(id)}</div>
+      ${flagBox(id, isLandPhone() ? 90 : 140, "flag-big")}
       ${sov}
       ${e.note ? `<p class="small">${esc(e.note)}</p>` : ''}
       <dl class="facts">${facts.map(f => `<dt>${f[0]}</dt><dd>${f[1]}</dd>`).join('')}</dl>
