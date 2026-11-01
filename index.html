@@ -1,0 +1,1816 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Atlas interactivo para estudiar países, capitales, banderas, accidentes geográficos y cartografía.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230e5a87'/%3E%3Cpath d='M2 16h28M16 2c5 4 5 24 0 28M16 2c-5 4-5 24 0 28' stroke='%23fff' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Atlas de Estudio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,400;1,500&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: mapa protagonista a pantalla completa + panel lateral (hoja inferior en móvil); barra superior con pestañas. */
+:root{
+  --bg:#e9eef0; --panel:#fbfcfc; --panel2:#f1f5f6; --ink:#16242f; --muted:#5a6b77; --line:#cfd9de;
+  --accent:#0e5a87; --accent-ink:#ffffff; --accent-soft:#d8e8f1;
+  --ocean:#cddfe8; --ocean-deep:#b9d1de; --land-line:#ffffff; --grat:#a9c3d1;
+  --p1:#e9dcc0; --p2:#d6e3c3; --p3:#f0cfc4; --p4:#d9d2e6; --p5:#f3e6a8; --p6:#c9dfe0;
+  --sel:#1640a3; --dispute-red:#d0261b; --dispute-orange:#ef8a00; --colony:#8b3fb5; --change:#0f8f86;
+  --ok:#2c8a4b; --ok-soft:#dcefe2; --bad:#c03a2b; --bad-soft:#f6dcd8; --warn:#9a6a00; --warn-soft:#f8edcc;
+  --m0:#c6ced3; --m1:#f2a65a; --m2:#f2d65a; --m3:#7cc27f; --m4:#2a8a5a;
+  --water-label:#2b5f86; --range-label:#7a4a22; --region-label:#8a5a2e; --peak:#3b2b1f;
+  --shadow:0 1px 2px rgba(20,40,60,.08),0 6px 24px rgba(20,40,60,.10);
+  --f-display:"Alegreya",Georgia,"Times New Roman",serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --panel-w:390px; --bar-h:54px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e161d; --panel:#141f28; --panel2:#1a2833; --ink:#e3ebf0; --muted:#93a5b2; --line:#2a3b48;
+  --accent:#5fb0e0; --accent-ink:#06131c; --accent-soft:#163246;
+  --ocean:#13222e; --ocean-deep:#0f1c26; --land-line:#0e161d; --grat:#24394a;
+  --p1:#4a4433; --p2:#3a4a35; --p3:#53393a; --p4:#403b55; --p5:#4f4a2c; --p6:#2f4a4c;
+  --sel:#8fb4ff; --dispute-red:#ff5a4d; --dispute-orange:#ffa733; --colony:#c58af0; --change:#39c9bd;
+  --ok:#5cc983; --ok-soft:#173726; --bad:#ff7a6a; --bad-soft:#3c1c18; --warn:#e6b64a; --warn-soft:#3a2f12;
+  --m0:#3a4752; --m1:#c97a32; --m2:#c9ad32; --m3:#4f9e5a; --m4:#7fe0a6;
+  --water-label:#9cc8ea; --range-label:#e8b98d; --region-label:#e0b48a; --peak:#f0e2d2;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e161d; --panel:#141f28; --panel2:#1a2833; --ink:#e3ebf0; --muted:#93a5b2; --line:#2a3b48;
+  --accent:#5fb0e0; --accent-ink:#06131c; --accent-soft:#163246;
+  --ocean:#13222e; --ocean-deep:#0f1c26; --land-line:#0e161d; --grat:#24394a;
+  --p1:#4a4433; --p2:#3a4a35; --p3:#53393a; --p4:#403b55; --p5:#4f4a2c; --p6:#2f4a4c;
+  --sel:#8fb4ff; --dispute-red:#ff5a4d; --dispute-orange:#ffa733; --colony:#c58af0; --change:#39c9bd;
+  --ok:#5cc983; --ok-soft:#173726; --bad:#ff7a6a; --bad-soft:#3c1c18; --warn:#e6b64a; --warn-soft:#3a2f12;
+  --m0:#3a4752; --m1:#c97a32; --m2:#c9ad32; --m3:#4f9e5a; --m4:#7fe0a6;
+  --water-label:#9cc8ea; --range-label:#e8b98d; --region-label:#e0b48a; --peak:#f0e2d2;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.35); color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;overflow:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:50;background:var(--panel)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-rows:var(--bar-h) 1fr;height:100%}
+/* barra superior */
+.bar{display:flex;align-items:center;gap:14px;background:var(--panel);border-bottom:1px solid var(--line);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));position:relative;z-index:20;min-width:0}
+.brand{font-family:var(--f-display);font-weight:700;font-size:21px;letter-spacing:.01em;white-space:nowrap;display:flex;align-items:baseline;gap:8px}
+.brand small{font-family:var(--f-mono);font-size:10.5px;font-weight:400;color:var(--muted);letter-spacing:.06em}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:none;padding:8px 13px;border-radius:8px;color:var(--muted);font-weight:500;white-space:nowrap}
+.tab:hover{background:var(--panel2);color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--accent-soft);color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
+.bar-right{display:flex;gap:8px;align-items:center}
+.iconbtn{border:1px solid var(--line);background:var(--panel);border-radius:8px;width:34px;height:34px;display:grid;place-items:center;color:var(--muted)}
+.iconbtn:hover{color:var(--ink);background:var(--panel2)}
+.sync{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
+/* zona principal */
+.main{position:relative;min-height:0;display:grid;grid-template-columns:1fr var(--panel-w)}
+.mapwrap{position:relative;min-width:0;min-height:0;overflow:hidden;background:var(--ocean-deep)}
+#map{width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.panel{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;min-width:0;padding-block:16px 28px;padding-left:18px;padding-right:max(18px,env(safe-area-inset-right,0px))}
+.page{position:absolute;inset:0;overflow-y:auto;background:var(--bg);z-index:5}
+.page-inner{max-width:1080px;margin:0 auto;padding-block:22px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet-handle{display:none}
+/* controles del mapa */
+.mapctl{position:absolute;right:calc(12px + env(safe-area-inset-right,0px));top:12px;display:flex;flex-direction:column;gap:6px;z-index:4}
+.mapctl button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);font-size:18px;line-height:1;color:var(--ink)}
+.searchbox{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));top:12px;z-index:4;width:min(320px,calc(100% - 80px))}
+.searchbox input{width:100%;padding:9px 12px 9px 34px;border-radius:10px;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow)}
+.searchbox svg{position:absolute;left:11px;top:11px;color:var(--muted)}
+.sugg{margin-top:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);max-height:300px;overflow:auto}
+.sugg button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:7px 12px}
+.sugg button:hover,.sugg button.on{background:var(--accent-soft)}
+.sugg img{width:24px;height:18px;border-radius:2px;object-fit:cover;box-shadow:0 0 0 1px var(--line)}
+.sugg small{color:var(--muted);margin-left:auto}
+.legend{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);font-size:13.5px;max-width:300px}
+.legend summary{padding:8px 12px;cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.legend summary::-webkit-details-marker{display:none}
+.legend summary::after{content:"▾";color:var(--muted)}
+.legend[open] summary::after{content:"▴"}
+.legend .rows{padding:0 12px 10px;display:grid;gap:5px}
+.legend label{display:grid;grid-template-columns:18px 34px 1fr;align-items:center;gap:6px;cursor:pointer}
+.legend svg{display:block}
+.legend .note{color:var(--muted);font-size:12px;line-height:1.35;margin-top:2px}
+.tooltip{position:absolute;pointer-events:none;z-index:8;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:6px 10px;font-size:13.5px;max-width:300px;line-height:1.35}
+.tooltip b{display:block}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:7px 14px;border-radius:999px;font-size:14px;z-index:9;box-shadow:var(--shadow)}
+/* SVG del mapa */
+.ocean{fill:var(--ocean)}
+.grat{fill:none;stroke:var(--grat);stroke-width:.5px;vector-effect:non-scaling-stroke}
+.cty{stroke:var(--land-line);stroke-width:.6px;vector-effect:non-scaling-stroke;stroke-linejoin:round;transition:fill .15s}
+.cty.hov{filter:brightness(.94)}
+.cty.dim{opacity:.45}
+.phys .cty{fill:transparent;stroke:rgba(40,30,20,.32);stroke-width:.7px}
+.phys .cty.hov{fill:rgba(255,255,255,.18);filter:none}
+.ln{fill:none;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round;pointer-events:none}
+.ln-sel{stroke:var(--sel);stroke-width:2.6px}
+.ln-sel-halo{stroke:var(--panel);stroke-width:5.5px;opacity:.8}
+.ln-terr{stroke:var(--sel);stroke-width:2.2px;stroke-dasharray:7 4}
+.ln-red{stroke:var(--dispute-red);stroke-width:2.2px;stroke-dasharray:3 3}
+.ln-orange{stroke:var(--dispute-orange);stroke-width:2.2px;stroke-dasharray:3 3}
+.ln-colony{stroke:var(--colony);stroke-width:2px;stroke-dasharray:1.5 3.5}
+.ln-change{stroke:var(--change);stroke-width:2px;stroke-dasharray:9 3 2 3}
+.fill-hit{fill:transparent;stroke:transparent;stroke-width:10px;vector-effect:non-scaling-stroke;pointer-events:all;cursor:help}
+.ln-ok{stroke:var(--ok);stroke-width:3px}
+.ln-bad{stroke:var(--bad);stroke-width:3px}
+.f-ok{fill:var(--ok)!important;fill-opacity:.75}
+.f-bad{fill:var(--bad)!important;fill-opacity:.7}
+.f-q{fill:var(--sel)!important;fill-opacity:.85}
+.mk{stroke:var(--panel);vector-effect:non-scaling-stroke;stroke-width:1.2px;cursor:pointer}
+.city-dot{fill:var(--panel);stroke:var(--ink);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+.city-cap{fill:var(--ink);stroke:var(--panel);stroke-width:1px;vector-effect:non-scaling-stroke}
+.lbl{font-family:var(--f-body);paint-order:stroke;stroke:var(--panel);stroke-linejoin:round;fill:var(--ink);pointer-events:none;text-anchor:middle;dominant-baseline:middle}
+.lbl-cty{font-weight:700;letter-spacing:.06em;text-transform:uppercase;fill:var(--muted)}
+.lbl-city{font-weight:500}
+.plab{font-family:var(--f-display);paint-order:stroke;stroke:rgba(255,255,255,.75);stroke-linejoin:round;text-anchor:middle;dominant-baseline:middle;cursor:pointer}
+.plab:hover{text-decoration:underline}
+.plab.water{font-style:italic;fill:#245a82;stroke:rgba(225,238,246,.85)}
+.plab.ocean-l{font-style:italic;letter-spacing:.3em;text-transform:uppercase;fill:#2b5f86;stroke:none;opacity:.85}
+.plab.range{font-family:var(--f-body);font-weight:700;text-transform:uppercase;letter-spacing:.22em;fill:#74431c}
+.plab.region{font-family:var(--f-body);font-weight:500;text-transform:uppercase;letter-spacing:.18em;fill:#80501f;font-style:italic}
+.plab.on{fill:#0b2f8a!important}
+.plab.land{fill:#33302b}
+.plab.peak{font-family:var(--f-body);fill:#2e2219;font-size:.92em}
+.plab.on{font-weight:700}
+.peak-mk{fill:#2e2219;stroke:#fff;stroke-width:.8px;vector-effect:non-scaling-stroke;cursor:pointer}
+.river{fill:none;stroke:#3f86c0;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;cursor:pointer}
+.river:hover{stroke:#1250a0}
+.lake{fill:#9fc6e2;stroke:#3f86c0;stroke-width:.5px;vector-effect:non-scaling-stroke}
+.hl-poly{fill:var(--sel);fill-opacity:.18;stroke:var(--sel);stroke-width:2.4px;vector-effect:non-scaling-stroke;pointer-events:none}
+.hl-line{fill:none;stroke:#ffde3b;stroke-width:5px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.hl-line2{fill:none;stroke:var(--sel);stroke-width:2.4px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.hl-pt{fill:#ffde3b;stroke:var(--sel);stroke-width:2.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+.click-mk{fill:none;stroke:var(--bad);stroke-width:2.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+/* panel: tipografía y componentes */
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+h2{font-size:26px;font-weight:700}
+h3{font-size:18px;font-weight:700}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:13.5px}
+.stack{display:grid;gap:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:8px 14px;font-weight:500}
+.btn:hover{background:var(--panel2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:5px 10px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 11px;font-size:14px;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+a.chip{color:var(--ink);text-decoration:none}
+a.chip:hover{background:var(--panel2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.flag-big{width:100%;max-width:220px;aspect-ratio:4/3;border-radius:6px;box-shadow:0 0 0 1px var(--line),var(--shadow);display:block;background:var(--panel2)}
+.flag-big svg,.flagbox svg{width:100%;height:100%;display:block}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;min-width:0}
+.sec{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:6px}
+.sec h4{margin:0;font-family:var(--f-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:8px}
+.sec p{margin:0}
+.chk{display:inline-block;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.04em;background:var(--warn-soft);color:var(--warn);border-radius:5px;padding:1px 6px;vertical-align:1px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;border-radius:999px;padding:2px 9px;background:var(--panel2);border:1px solid var(--line)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.list{display:grid;gap:2px;margin:0;padding:0;list-style:none}
+.list button,.list .li{display:flex;gap:8px;align-items:baseline;width:100%;text-align:left;border:0;background:none;padding:5px 6px;border-radius:7px;min-width:0}
+.list button:hover{background:var(--panel2)}
+.list .meta{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap;font-family:var(--f-mono)}
+.swatch-line{width:30px;height:10px;flex:none}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.linkbtn{border:0;background:none;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.kv{font-family:var(--f-mono);font-size:13px}
+/* examen */
+.qcard{display:grid;gap:14px}
+.qprompt{font-family:var(--f-display);font-size:25px;font-weight:700;line-height:1.2}
+.qprompt .hint{display:block;font-family:var(--f-body);font-size:14px;font-weight:400;color:var(--muted);margin-top:4px}
+.qflag{width:100%;max-width:300px;aspect-ratio:4/3;border-radius:6px;box-shadow:0 0 0 1px var(--line),var(--shadow);overflow:hidden}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:10px;align-items:center;text-align:left;border:1.5px solid var(--line);background:var(--panel);border-radius:11px;padding:11px 13px;font-size:16.5px;font-weight:500}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt .k{font-family:var(--f-mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.opts.flags{grid-template-columns:1fr 1fr}
+.opt.flagopt{padding:6px;display:block}
+.opt.flagopt .flagbox{aspect-ratio:4/3;border-radius:4px;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
+.answer-in{display:flex;gap:8px}
+.answer-in input{flex:1;min-width:0;padding:11px 13px;border-radius:11px;border:1.5px solid var(--line);background:var(--panel);font-size:17px}
+.answer-in input:focus{border-color:var(--accent);outline:none}
+.fb{border-radius:11px;padding:11px 13px;font-size:15.5px}
+.fb.ok{background:var(--ok-soft);color:var(--ink);border-left:4px solid var(--ok)}
+.fb.bad{background:var(--bad-soft);color:var(--ink);border-left:4px solid var(--bad)}
+.fb.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.score{display:flex;gap:14px;font-family:var(--f-mono);font-size:13px;color:var(--muted);flex-wrap:wrap}
+.score b{color:var(--ink);font-weight:500}
+.lvl{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-family:var(--f-mono)}
+.setup{display:grid;gap:14px}
+.setup fieldset{border:0;padding:0;margin:0;display:grid;gap:7px}
+.setup legend{font-family:var(--f-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;padding:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:var(--panel);padding:7px 13px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.typegrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.typegrid label{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:7px 9px;font-size:14px;cursor:pointer;background:var(--panel)}
+.typegrid label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.typegrid input{margin-top:3px}
+.toggle{display:flex;gap:8px;align-items:center;font-size:14.5px;cursor:pointer}
+.kbd{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+/* progreso y cartografía */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.bars{display:grid;gap:8px}
+.barrow{display:grid;grid-template-columns:150px 1fr 48px;gap:10px;align-items:center;font-size:14.5px}
+.barrow .track{height:12px;border-radius:6px;background:var(--panel2);overflow:hidden;display:flex}
+.barrow .track span{display:block;height:100%}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.bigstat{display:grid;gap:2px}
+.bigstat b{font-family:var(--f-display);font-size:34px;line-height:1}
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+textarea{width:100%;min-height:120px;font-family:var(--f-mono);font-size:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:10px}
+.confirm{border:1px solid var(--bad);background:var(--bad-soft);border-radius:10px;padding:10px 12px;display:grid;gap:8px}
+.carto h2{font-size:30px}
+.carto section{display:grid;gap:14px;padding-block:26px;border-bottom:1px solid var(--line)}
+.carto p{margin:0;max-width:68ch}
+.carto .lead{font-size:18px;color:var(--muted);max-width:68ch}
+.figure{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px;min-width:0}
+.figure figcaption{font-size:13.5px;color:var(--muted)}
+.figure svg,.figure canvas{width:100%;height:auto;display:block;max-width:100%}
+.split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+.projinfo{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:15px}
+.projinfo dt{color:var(--muted)}.projinfo dd{margin:0}
+.toc{display:flex;flex-wrap:wrap;gap:6px}
+.svgtxt{font-family:var(--f-body);fill:var(--ink)}
+.svgmut{font-family:var(--f-body);fill:var(--muted)}
+.loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--bg);z-index:30;font-family:var(--f-display);font-size:20px;color:var(--muted)}
+@media (max-width:820px){
+  :root{--bar-h:auto}
+  .app{grid-template-rows:auto 1fr}
+  .bar{flex-wrap:wrap;padding-block:8px;gap:6px 10px}
+  .brand{font-size:18px}
+  .brand small,.sync{display:none}
+  .tabs{order:3;flex-basis:100%}
+  .tab{padding:6px 10px}
+  .main{grid-template-columns:1fr}
+  .panel{position:absolute;left:0;right:0;bottom:0;max-height:min(56%,520px);border-left:0;border-top:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.18);z-index:6;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:4px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));transition:max-height .25s}
+  .panel.collapsed{max-height:64px;overflow:hidden}
+  .sheet-handle{display:flex;justify-content:center;padding:6px 0 8px;border:0;background:none;width:100%;position:sticky;top:-4px;background:var(--panel);z-index:2}
+  .sheet-handle span{width:44px;height:5px;border-radius:3px;background:var(--line)}
+  .legend{bottom:auto;top:58px;max-width:250px;font-size:13px}
+  .split{grid-template-columns:1fr}
+  .barrow{grid-template-columns:110px 1fr 44px}
+  .qprompt{font-size:21px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app" id="app">
+  <header class="bar">
+    <div class="brand">Atlas de Estudio <small>EQUAL EARTH · NATURAL EARTH</small></div>
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button class="tab" role="tab" data-tab="explorar" aria-selected="true">Explorar</button>
+      <button class="tab" role="tab" data-tab="examen">Examen</button>
+      <button class="tab" role="tab" data-tab="fisico">Físico</button>
+      <button class="tab" role="tab" data-tab="cartografia">Cartografía</button>
+      <button class="tab" role="tab" data-tab="progreso">Progreso</button>
+    </nav>
+    <div class="bar-right"><span class="sync" id="sync"></span><button class="iconbtn" id="themeBtn" title="Cambiar tema" aria-label="Cambiar tema"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button></div>
+  </header>
+  <div class="main" id="main">
+    <div class="mapwrap" id="mapwrap">
+      <svg id="map" aria-label="Mapa del mundo"></svg>
+      <div class="searchbox" id="searchbox">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Buscar país o territorio…" autocomplete="off" aria-label="Buscar país">
+        <div class="sugg" id="sugg" hidden></div>
+      </div>
+      <div class="mapctl">
+        <button id="zin" title="Acercar" aria-label="Acercar">+</button>
+        <button id="zout" title="Alejar" aria-label="Alejar">−</button>
+        <button id="zhome" title="Ver el mundo" aria-label="Ver el mundo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg></button>
+      </div>
+      <details class="legend" id="legend" open></details>
+      <div class="tooltip" id="tip" hidden></div>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+    <aside class="panel" id="panel"><button class="sheet-handle" id="handle" aria-label="Mostrar u ocultar panel"><span></span></button><div id="panelBody"></div></aside>
+    <div class="page" id="page" hidden></div>
+  </div>
+  <div class="loading" id="loading">Cargando el atlas…</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4.0.0/dist/d3-geo-projection.min.js"></script>
+<script>
+'use strict';
+/* ============ utilidades ============ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ART = /^(el|la|los|las|the|l)\s+/;
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/['’`´.]/g, '').replace(/[^a-z0-9]+/g, ' ').trim().replace(ART, '');
+function lev(a, b) {
+  if (a === b) return 0; const m = a.length, n = b.length; if (!m || !n) return m || n;
+  let prev = Array.from({ length: n + 1 }, (_, i) => i), cur = new Array(n + 1);
+  for (let i = 1; i <= m; i++) { cur[0] = i; for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); [prev, cur] = [cur, prev]; }
+  return prev[n];
+}
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const sample = (a, n) => shuffle(a).slice(0, n);
+const uniq = a => [...new Set(a)];
+const nf = new Intl.NumberFormat('es-ES');
+function fmtPop(m) { if (m == null) return '—'; if (m >= 1) return (m >= 100 ? nf.format(Math.round(m)) : nf.format(+m.toFixed(1))) + ' millones'; return nf.format(Math.round(m * 1e6)) + ' hab.'; }
+const fmtArea = a => a ? nf.format(Math.round(a)) + ' km²' : '—';
+const verif = s => esc(s).replace(/\s*\(verificar[^)]*\)/g, ' <span class="chk" title="Dato muy reciente o cambiante: compruébalo">verificar</span>');
+const debounce = (f, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
+const now = () => Date.now();
+const isMobile = () => matchMedia('(max-width:820px)').matches;
+function toast(msg, ms = 1800) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, ms); }
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
+const REF_DATE = 'junio de 2026';
+const REGIONS = ['Europa', 'África', 'Asia', 'América del Norte', 'Centroamérica y Caribe', 'América del Sur', 'Oceanía'];
+
+/* ============ datos ============ */
+const D = {};
+async function loadData() {
+  const get = p => fetch(p).then(r => { if (!r.ok) throw new Error('No se pudo cargar ' + p); return r.json(); });
+  const [params, world, info, flags, special, phys, physGeo, sphere] = await Promise.all(
+    ['params', 'world', 'info', 'flags', 'special', 'phys', 'phys_geo', 'sphere110'].map(n => get('data/' + n + '.json')));
+  Object.assign(D, { params, world, info, flags, special, phys, physGeo, sphere });
+  D.W = params.W; D.H = params.H;
+  D.proj = d3.geoEqualEarth().scale(params.S).translate([D.W / 2, D.H / 2]);
+  D.path = d3.geoPath();               // geometrías ya proyectadas
+  D.ppath = d3.geoPath(D.proj);        // geometrías en lon/lat
+  D.cfeat = topojson.feature(world, world.objects.countries).features;
+  D.byId = Object.fromEntries(D.cfeat.map(f => [f.id, f]));
+  D.extra = Object.fromEntries(topojson.feature(world, world.objects.extra).features.map(f => [f.id, f]));
+  D.states = Object.keys(info).filter(id => info[id].state).sort((a, b) => info[a].name.localeCompare(info[b].name, 'es'));
+  // partes de cada país: principal + lejanas + territorios
+  D.parts = {};
+  for (const f of D.cfeat) { const p = f.properties || {}; if (p.kind === 'far' || p.kind === 'territory') (D.parts[p.sov] = D.parts[p.sov] || []).push(f.id); }
+  // colores políticos (coloreado voraz por vecindad)
+  const geoms = world.objects.countries.geometries, nb = topojson.neighbors(geoms);
+  const col = {}; const order = D.cfeat.map((f, i) => i).sort((a, b) => D.path.area(D.cfeat[b]) - D.path.area(D.cfeat[a]));
+  for (const i of order) { const f = D.cfeat[i], p = f.properties || {}; if (p.kind === 'far' || p.kind === 'territory') continue; const used = new Set(nb[i].map(j => col[D.cfeat[j].id])); let c = 1; while (used.has(c) && c < 6) c++; col[f.id] = c; }
+  for (const f of D.cfeat) { const p = f.properties || {}; if (!col[f.id]) col[f.id] = col[p.sov] || 6; }
+  D.color = col;
+  // bounding boxes y diminutos
+  D.bbox = {}; D.tiny = [];
+  for (const f of D.cfeat) { const b = D.path.bounds(f); D.bbox[f.id] = b; const diag = Math.hypot(b[1][0] - b[0][0], b[1][1] - b[0][1]); f.diag = diag; }
+  for (const f of D.cfeat) { if (f.diag < 7 && f.id !== 'ATA') { const i = info[f.id]; const lab = i && i.lab ? D.proj([i.lab[0], i.lab[1]]) : D.path.centroid(largestPoly(f)); D.tiny.push({ id: f.id, x: lab[0], y: lab[1], diag: f.diag }); } }
+  // índice de nombres para búsqueda
+  D.searchIdx = Object.entries(info).filter(([id, e]) => !id.includes('-') || true).map(([id, e]) => ({ id, name: e.name, n: norm(e.name), alts: uniq((e.alts || []).map(norm)) }));
+  // físico
+  D.pitems = phys.items; D.pidx = phys.idx;
+  D.pgeo = {};
+  for (const o of ['marine', 'regions', 'lakes', 'rivers']) for (const f of topojson.feature(physGeo, physGeo.objects[o]).features) D.pgeo[f.id] = f;
+  D.pRev = {}; // rasgo -> países
+  for (const [cid, list] of Object.entries(D.pidx)) { const sov = baseId(cid); for (const fid of list) (D.pRev[fid] = D.pRev[fid] || new Set()).add(sov); }
+}
+function largestPoly(f) {
+  const g = f.geometry; if (!g || g.type !== 'MultiPolygon') return f;
+  let best = null, ba = -1; for (const c of g.coordinates) { const p = { type: 'Polygon', coordinates: c }; const a = D.path.area(p); if (a > ba) { ba = a; best = p; } } return best;
+}
+function baseId(id) { const f = D.byId[id]; const p = f && f.properties || {}; if (p.kind === 'far') return p.sov; return id; }
+function geoRef(ref) { if (ref.startsWith('c:')) return D.byId[ref.slice(2)]; return D.extra[ref]; }
+function flagSvg(id) { const e = D.info[id]; return e && e.iso2 && D.flags[e.iso2] ? D.flags[e.iso2] : '<svg viewBox="0 0 4 3"><rect width="4" height="3" fill="#ccc"/></svg>'; }
+function flagUrl(id) { const s = flagSvg(id); return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s); }
+function nameOf(id) { const e = D.info[id]; return e ? e.name : id; }
+function unionBounds(ids) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const id of ids) { const b = D.bbox[id]; if (!b) continue; x0 = Math.min(x0, b[0][0]); y0 = Math.min(y0, b[0][1]); x1 = Math.max(x1, b[1][0]); y1 = Math.max(y1, b[1][1]); }
+  return [[x0, y0], [x1, y1]];
+}
+function boundsOf(feats) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const f of feats) { if (!f) continue; const b = D.path.bounds(f); if (!isFinite(b[0][0])) continue; x0 = Math.min(x0, b[0][0]); y0 = Math.min(y0, b[0][1]); x1 = Math.max(x1, b[1][0]); y1 = Math.max(y1, b[1][1]); }
+  return [[x0, y0], [x1, y1]];
+}
+/* encuadre del país "propio" (sin territorios muy lejanos que distorsionan) */
+function homeBounds(id) {
+  const f = D.byId[id]; if (!f) return null;
+  if (f.geometry && f.geometry.type === 'MultiPolygon') {
+    // descarta islas muy lejanas y diminutas respecto del polígono mayor
+    const polys = f.geometry.coordinates.map(c => ({ type: 'Polygon', coordinates: c })).map(p => ({ p, a: D.path.area(p), c: D.path.centroid(p) }));
+    const big = polys.reduce((a, b) => a.a > b.a ? a : b);
+    const keep = polys.filter(q => q.a > big.a * 0.02 || Math.hypot(q.c[0] - big.c[0], q.c[1] - big.c[1]) < 60);
+    return boundsOf(keep.map(q => q.p));
+  }
+  return D.bbox[id];
+}
+
+/* ============ memoria de aprendizaje (repetición espaciada) ============ */
+const INTERVALS_MIN = [1, 10, 60 * 24, 60 * 24 * 3, 60 * 24 * 8, 60 * 24 * 21, 60 * 24 * 60];
+const LEVELS = [{ n: 'Nuevo', c: 'var(--m0)' }, { n: 'Aprendiendo', c: 'var(--m1)' }, { n: 'Repasando', c: 'var(--m2)' }, { n: 'Dominado', c: 'var(--m4)' }];
+const STORE = {
+  key: 'atlas-estudio-v1',
+  d: { v: 1, items: {}, days: [], tot: { n: 0, ok: 0 }, set: {} },
+  load() { const s = lsGet(this.key); if (s) { try { const x = JSON.parse(s); if (x && x.items) this.d = Object.assign(this.d, x); } catch (e) { } } },
+  saveLocal() { lsSet(this.key, JSON.stringify(this.d)); },
+  save() { this.saveLocal(); REMOTE.schedule(); },
+  rec(key) { return this.d.items[key]; },
+  // r = [caja, vence(min), vistas, aciertos, fallos, tiempoMedio(ds), última(min)]
+  grade(key, q, ms) {
+    const t = Math.floor(now() / 60000);
+    const r = this.d.items[key] || [0, 0, 0, 0, 0, 0, 0];
+    r[2]++; r[6] = t; r[5] = Math.round(((r[5] * (r[2] - 1)) + Math.min(ms, 60000) / 100) / r[2]);
+    if (q === 0) { r[4]++; r[0] = Math.max(0, r[0] - 2); r[1] = t + 1; }
+    else {
+      r[3]++;
+      if (q === 1) { r[0] = Math.max(1, r[0]); r[1] = t + Math.max(1, Math.round(INTERVALS_MIN[r[0]] * 0.4)); }
+      else { r[0] = Math.min(6, r[0] + (q === 3 && r[0] >= 1 ? 2 : 1)); r[1] = t + INTERVALS_MIN[r[0]]; }
+    }
+    this.d.items[key] = r;
+    this.d.tot.n++; if (q > 0) this.d.tot.ok++;
+    const day = new Date().toISOString().slice(0, 10); if (!this.d.days.includes(day)) this.d.days.push(day);
+    this.save();
+    return r;
+  },
+  level(key) { const r = this.d.items[key]; if (!r || !r[2]) return 0; if (r[0] <= 1) return 1; if (r[0] <= 3) return 2; return 3; },
+  weight(key, tmin) {
+    const r = this.d.items[key];
+    if (!r || !r[2]) return 1.0;                                   // nuevo
+    const due = r[1] <= tmin;
+    if (due) { const iv = INTERVALS_MIN[r[0]] || 1; return 3 + Math.min(3, (tmin - r[1]) / iv) + (r[4] > r[3] ? 1 : 0); }
+    return 0.06 / (r[0] + 1) + (r[0] <= 1 ? 0.25 : 0);              // dominado: aparece de vez en cuando
+  },
+  pick(keys, avoid = []) {
+    const tmin = Math.floor(now() / 60000);
+    const learning = keys.filter(k => { const r = this.d.items[k]; return r && r[2] && r[0] <= 1; }).length;
+    let tot = 0; const w = keys.map(k => { let x = avoid.includes(k) ? 0 : this.weight(k, tmin); if (!this.d.items[k] && learning >= 10) x *= 0.25; tot += x; return x; });
+    if (tot <= 0) return keys[Math.random() * keys.length | 0];
+    let r = Math.random() * tot; for (let i = 0; i < keys.length; i++) { r -= w[i]; if (r <= 0) return keys[i]; }
+    return keys[keys.length - 1];
+  },
+  streak() {
+    const set = new Set(this.d.days); let s = 0; const d = new Date();
+    if (!set.has(d.toISOString().slice(0, 10))) d.setDate(d.getDate() - 1);
+    while (set.has(d.toISOString().slice(0, 10))) { s++; d.setDate(d.getDate() - 1); }
+    return s;
+  },
+  merge(o) {
+    if (!o || !o.items) return;
+    for (const [k, r] of Object.entries(o.items)) { const m = this.d.items[k]; if (!m || (r[6] || 0) > (m[6] || 0) || (r[2] > m[2] && (r[6] || 0) >= (m[6] || 0))) this.d.items[k] = r; }
+    this.d.days = uniq([...(this.d.days || []), ...(o.days || [])]).sort();
+    if (o.tot && o.tot.n > this.d.tot.n) this.d.tot = o.tot;
+  },
+  reset(prefixes) {
+    if (!prefixes) { this.d.items = {}; this.d.days = []; this.d.tot = { n: 0, ok: 0 }; }
+    else for (const k of Object.keys(this.d.items)) if (prefixes.some(p => k.startsWith(p))) delete this.d.items[k];
+    this.save();
+  }
+};
+/* copia en la nube privada del usuario (capacidad db), además del navegador */
+const REMOTE = {
+  db: null, uid: null, ready: false, t: null,
+  async init() {
+    try {
+      if (!window.claude || !window.claude.use) return this.status('Progreso guardado en este navegador');
+      const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+      if (!db || !user) return this.status('Progreso guardado en este navegador');
+      const uid = await user.id(); if (!uid) return this.status('Progreso guardado en este navegador');
+      this.db = db; this.uid = uid;
+      const snap = await this.doc().get();
+      if (snap.exists) { const v = snap.data(); STORE.merge(v && v.json ? JSON.parse(v.json) : null); STORE.saveLocal(); APP.refresh && APP.refresh(); }
+      this.ready = true; this.status('Progreso sincronizado');
+    } catch (e) { this.status('Progreso guardado en este navegador'); }
+  },
+  doc() { return this.db.doc('data/users/' + this.uid + '/atlas/progreso'); },
+  status(t) { const s = $('#sync'); if (s) s.textContent = t; },
+  schedule() { if (!this.ready) return; clearTimeout(this.t); this.t = setTimeout(() => this.push(), 4000); },
+  async push() { try { await this.doc().set({ json: JSON.stringify(STORE.d), at: new Date().toISOString() }); this.status('Progreso sincronizado'); } catch (e) { this.status('Sin conexión: guardado en el navegador'); } }
+};
+
+/* ============ motor del mapa ============ */
+const MAP = {
+  t: d3.zoomIdentity, k: 1, mode: 'political', listeners: {},
+  on(ev, f) { (this.listeners[ev] = this.listeners[ev] || []).push(f); },
+  emit(ev, ...a) { (this.listeners[ev] || []).forEach(f => f(...a)); },
+  init() {
+    const svg = this.svg = d3.select('#map');
+    const defs = svg.append('defs');
+    defs.append('clipPath').attr('id', 'sphereClip').append('path').attr('d', D.ppath({ type: 'Sphere' }));
+    this.gz = svg.append('g');
+    const g = this.gz;
+    this.gOcean = g.append('path').attr('class', 'ocean').attr('d', D.ppath({ type: 'Sphere' }));
+    this.gRelief = g.append('g').attr('clip-path', 'url(#sphereClip)').attr('display', 'none');
+    this.gGrat = g.append('path').attr('class', 'grat').attr('d', D.ppath(d3.geoGraticule10()));
+    this.gCty = g.append('g');
+    this.gPhys = g.append('g').attr('display', 'none');
+    this.gSpecial = g.append('g');
+    this.gHL = g.append('g');
+    this.gMarks = g.append('g');
+    this.gLabels = g.append('g');
+    this.gTop = g.append('g');
+    // relieve: imagen general + teselas de alta resolución
+    const P = D.params, sc = P.w / D.W;
+    this.gRelief.append('image').attr('href', 'relief/relief_lo.jpg').attr('x', 0).attr('y', 0).attr('width', D.W).attr('height', D.H).attr('preserveAspectRatio', 'none');
+    this.tiles = [];
+    for (let j = 0; j < 4; j++) for (let i = 0; i < 8; i++) {
+      const w = P.tw / sc, hgt = Math.min(P.th, P.h - j * P.th) / sc;
+      const im = this.gRelief.append('image').attr('x', i * P.tw / sc).attr('y', j * P.th / sc).attr('width', w + 0.05).attr('height', hgt + 0.05).attr('preserveAspectRatio', 'none');
+      this.tiles.push({ im, x0: i * P.tw / sc, y0: j * P.th / sc, x1: i * P.tw / sc + w, y1: j * P.th / sc + hgt, src: `relief/r_${i}_${j}.jpg`, loaded: false });
+    }
+    // países
+    this.cty = this.gCty.selectAll('path').data(D.cfeat).join('path').attr('class', 'cty').attr('d', D.path).attr('data-id', d => d.id);
+    this.mk = this.gMarks.selectAll('circle').data(D.tiny).join('circle').attr('class', 'mk').attr('cx', d => d.x).attr('cy', d => d.y).attr('data-id', d => d.id);
+    this.paintPolitical();
+    // interacción
+    const tip = $('#tip');
+    const over = (ev, id) => { if (this.hoverEnabled === false) return; this.emit('hover', id, ev); };
+    const move = ev => { if (!tip.hidden) { const r = $('#mapwrap').getBoundingClientRect(); let x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14; if (x + 250 > r.width) x -= 270; tip.style.left = x + 'px'; tip.style.top = y + 'px'; } };
+    const bind = sel => sel.on('pointerenter', (ev, d) => { over(ev, d.id); d3.select(ev.currentTarget).classed('hov', true); })
+      .on('pointerleave', (ev) => { d3.select(ev.currentTarget).classed('hov', false); this.emit('hover', null, ev); })
+      .on('pointermove', move)
+      .on('click', (ev, d) => { if (this._dragged) return; ev.stopPropagation(); this.emit('click', d.id, ev, this.toWorld(ev)); });
+    bind(this.cty); bind(this.mk);
+    svg.on('pointermove.tip', move);
+    svg.on('click.bg', ev => { if (this._dragged) return; this.emit('click', null, ev, this.toWorld(ev)); });
+    this.zoom = d3.zoom().scaleExtent([0.2, 200]).on('start', () => { this._dragged = false; }).on('zoom', ev => {
+      if (ev.sourceEvent && ev.sourceEvent.type === 'mousemove') this._dragged = true;
+      this.t = ev.transform; this.k = ev.transform.k; this.gz.attr('transform', ev.transform); this.onZoom(); this.emit('zoom', ev.transform);
+    }).on('end', () => { setTimeout(() => this._dragged = false, 0); this.onZoomEnd(); this.emit('zoomend'); });
+    svg.call(this.zoom).on('dblclick.zoom', null);
+    $('#zin').onclick = () => svg.transition().duration(300).call(this.zoom.scaleBy, 1.8);
+    $('#zout').onclick = () => svg.transition().duration(300).call(this.zoom.scaleBy, 1 / 1.8);
+    $('#zhome').onclick = () => this.home();
+    new ResizeObserver(debounce(() => this.resize(), 80)).observe($('#mapwrap'));
+    this.resize(true);
+  },
+  toWorld(ev) { const p = d3.pointer(ev, this.svg.node()); return this.t.invert(p); },
+  resize(first) {
+    const r = $('#mapwrap').getBoundingClientRect(); this.vw = r.width; this.vh = r.height;
+    this.fitK = Math.min(this.vw / D.W, this.vh / D.H) * 0.98;
+    this.zoom.scaleExtent([this.fitK * 0.8, this.fitK * 120]).translateExtent([[-D.W * 0.25, -D.H * 0.35], [D.W * 1.25, D.H * 1.35]]);
+    if (first) this.home(0);
+  },
+  pad() { const m = isMobile(); const p = $('#panel'); const bottom = m && !p.hidden && !p.classList.contains('collapsed') ? p.getBoundingClientRect().height : 0; return { t: m ? 60 : 56, r: 54, b: bottom + 20, l: 20 }; },
+  fit(b, { dur = 750, maxK = 60, minK = 1 } = {}) {
+    if (!b || !isFinite(b[0][0])) return;
+    const p = this.pad(), w = Math.max(40, this.vw - p.l - p.r), hh = Math.max(40, this.vh - p.t - p.b);
+    const bw = Math.max(b[1][0] - b[0][0], 1), bh = Math.max(b[1][1] - b[0][1], 1);
+    let k = Math.min(w / bw, hh / bh) * 0.88; k = Math.max(this.fitK * minK, Math.min(k, this.fitK * maxK));
+    const cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2;
+    const t = d3.zoomIdentity.translate(p.l + w / 2 - k * cx, p.t + hh / 2 - k * cy).scale(k);
+    (dur ? this.svg.transition().duration(dur) : this.svg).call(this.zoom.transform, t);
+  },
+  home(dur = 600) { this.fit([[0, 0], [D.W, D.H]], { dur, maxK: 1, minK: 0.8 }); },
+  rel() { return this.k / this.fitK; },
+  onZoom() {
+    const k = this.k;
+    this.mk.attr('r', 5 / k).attr('display', d => this.mode !== 'physical' && this.mode !== 'physquiz' && d.diag * k < 14 ? null : 'none');
+    this.gLabels.attr('font-size', 13 / k).attr('stroke-width', 3 / k);
+    this.gTop.attr('font-size', 13 / k).attr('stroke-width', 3 / k);
+    if (this.zoomHook) this.zoomHook(k);
+  },
+  onZoomEnd() {
+    if (this.mode === 'physical' || this.mode === 'physquiz') this.loadTiles();
+    if (this.layoutHook) this.layoutHook();
+  },
+  loadTiles() {
+    if (this.rel() < 1.6) return;
+    const x0 = this.t.invertX(0), x1 = this.t.invertX(this.vw), y0 = this.t.invertY(0), y1 = this.t.invertY(this.vh);
+    for (const t of this.tiles) if (!t.loaded && t.x1 > x0 && t.x0 < x1 && t.y1 > y0 && t.y0 < y1) { t.im.attr('href', t.src); t.loaded = true; }
+  },
+  setMode(mode) {
+    this.mode = mode;
+    const phys = mode === 'physical' || mode === 'physquiz';
+    this.svg.classed('phys', phys);
+    this.gRelief.attr('display', phys ? null : 'none');
+    this.gPhys.attr('display', phys ? null : 'none');
+    this.gGrat.attr('display', phys ? 'none' : null);
+    this.gOcean.style('fill', phys ? '#c8d6e0' : null);
+    this.mk.attr('display', phys ? 'none' : null);
+    if (phys) { this.cty.style('fill', null); this.loadTiles(); }
+    else this.paintPolitical();
+    this.onZoom();
+  },
+  paintPolitical() { this.cty.attr('class', 'cty').style('fill', d => `var(--p${D.color[d.id] || 6})`); this.mk.style('fill', d => `var(--p${D.color[d.id] || 6})`).style('stroke', null); },
+  paint(fn) { this.cty.style('fill', d => fn(d.id)); this.mk.style('fill', d => fn(d.id)); },
+  clearOverlays() { this.gSpecial.selectAll('*').remove(); this.gHL.selectAll('*').remove(); this.gTop.selectAll('*').remove(); },
+  /* etiquetas con detección de colisiones en pantalla */
+  layoutLabels(sel, opts = {}) {
+    const k = this.k, t = this.t, vw = this.vw, vh = this.vh, base = 13;
+    const placed = [];
+    const items = sel.data().map((d, i) => ({ d, i })).filter(o => (o.d.minK || 0) <= this.rel());
+    items.sort((a, b) => (a.d.pri || 0) - (b.d.pri || 0));
+    const show = new Set();
+    for (const o of items) {
+      const d = o.d; const sx = t.applyX(d.x), sy = t.applyY(d.y);
+      if (sx < -50 || sx > vw + 50 || sy < -30 || sy > vh + 30) continue;
+      const fs = base * (d.em || 1); const w = (d.w || d.text.length * 0.56 * (d.ls ? 1 + d.ls * 1.6 : 1)) * fs, hgt = fs * (d.lines || 1.2);
+      let bx;
+      if (d.a && Math.abs(d.a) > 8) { const ang = d.a * Math.PI / 180, c = Math.abs(Math.cos(ang)), s = Math.abs(Math.sin(ang)); const W2 = w * c + hgt * s, H2 = w * s + hgt * c; bx = [sx - W2 / 2, sy - H2 / 2, sx + W2 / 2, sy + H2 / 2]; }
+      else bx = [sx - w / 2, sy - hgt / 2, sx + w / 2, sy + hgt / 2];
+      if (opts.always && opts.always(d)) { placed.push(bx); show.add(o.i); continue; }
+      if (placed.some(p => !(bx[2] < p[0] || bx[0] > p[2] || bx[3] < p[1] || bx[1] > p[3]))) continue;
+      placed.push(bx); show.add(o.i);
+    }
+    sel.attr('display', (d, i) => show.has(i) ? null : 'none');
+  }
+};
+
+/* ============ panel y navegación ============ */
+const APP = { tab: null, tabs: {} };
+function setPanel(html) { const b = $('#panelBody'); b.innerHTML = html; $('#panel').scrollTop = 0; $('#panel').classList.remove('collapsed'); }
+function tooltip(html, ev) {
+  const tip = $('#tip'); if (!html) { tip.hidden = true; return; }
+  tip.innerHTML = html; tip.hidden = false;
+  if (ev && ev.clientX != null) { const r = $('#mapwrap').getBoundingClientRect(); let x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14; if (x + 250 > r.width) x -= 270; tip.style.left = x + 'px'; tip.style.top = y + 'px'; }
+}
+function switchTab(name) {
+  if (APP.tab === name) return;
+  const prev = APP.tabs[APP.tab]; if (prev && prev.leave) prev.leave();
+  APP.tab = name;
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
+  const t = APP.tabs[name];
+  const pageMode = !!t.page;
+  $('#page').hidden = !pageMode; $('#panel').hidden = pageMode;
+  $('#main').style.gridTemplateColumns = pageMode ? '1fr' : '';
+  MAP.hoverEnabled = true; MAP.layoutHook = null; MAP.zoomHook = null; MAP.clearOverlays(); MAP.gLabels.selectAll('*').remove(); tooltip(null);
+  $('#legend').hidden = true; $('#searchbox').hidden = true;
+  t.enter();
+  lsSet('atlas-tab', name);
+  try { if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name); } catch (e) { }
+  setTimeout(() => MAP.resize(), 30);
+}
+function initShell() {
+  $$('.tab').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+  $('#handle').onclick = () => $('#panel').classList.toggle('collapsed');
+  const th = $('#themeBtn');
+  const applyTheme = v => { if (v) document.documentElement.setAttribute('data-theme', v); else document.documentElement.removeAttribute('data-theme'); };
+  applyTheme(lsGet('atlas-theme'));
+  th.onclick = () => { const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); const nx = cur === 'dark' ? 'light' : 'dark'; applyTheme(nx); lsSet('atlas-theme', nx); };
+  window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (APP.tabs[h]) switchTab(h); });
+  // buscador
+  const inp = $('#search'), sg = $('#sugg'); let hits = [], cur = 0;
+  const render = () => { sg.hidden = !hits.length; sg.innerHTML = hits.map((h, i) => `<button data-id="${h.id}" class="${i === cur ? 'on' : ''}"><img alt="" src="${flagUrl(h.id)}">${esc(h.name)}<small>${esc(D.info[h.id].state ? (D.info[h.id].reg || '') : 'territorio')}</small></button>`).join(''); };
+  inp.oninput = () => {
+    const q = norm(inp.value); cur = 0; if (!q) { hits = []; return render(); }
+    hits = D.searchIdx.filter(x => !x.id.includes('-') && (x.n.includes(q) || x.alts.some(a => a.startsWith(q)))).sort((a, b) => (b.n.startsWith(q) - a.n.startsWith(q)) || (!!D.info[b.id].state - !!D.info[a.id].state) || a.n.localeCompare(b.n)).slice(0, 8);
+    render();
+  };
+  inp.onkeydown = e => { if (e.key === 'ArrowDown') { cur = Math.min(hits.length - 1, cur + 1); render(); e.preventDefault(); } else if (e.key === 'ArrowUp') { cur = Math.max(0, cur - 1); render(); e.preventDefault(); } else if (e.key === 'Enter' && hits[cur]) { pick(hits[cur].id); } else if (e.key === 'Escape') { hits = []; render(); } };
+  sg.onclick = e => { const b = e.target.closest('button'); if (b) pick(b.dataset.id); };
+  const pick = id => { hits = []; render(); inp.value = ''; inp.blur(); const t = APP.tabs[APP.tab]; if (t && t.select) t.select(id, true); };
+  document.addEventListener('click', e => { if (!e.target.closest('#searchbox')) { hits = []; render(); } });
+}
+
+/* ============ EXPLORAR ============ */
+const TERR_DISPUTE = { FLK: ['malvinas'], GIB: ['gibraltar'], IOT: ['chagos'], SGS: ['georgias'], 'FRA-MYT': ['mayotte'], 'ESP-CEU': ['ceuta-melilla'], 'ESP-MEL': ['ceuta-melilla'], HKG: [], MAC: [] };
+const CENTURIES = [15, 16, 17, 18, 19, 20];
+const roman = c => ({ 11: 'XI', 12: 'XII', 13: 'XIII', 14: 'XIV', 15: 'XV', 16: 'XVI', 17: 'XVII', 18: 'XVIII', 19: 'XIX', 20: 'XX', 21: 'XXI' }[c] || c);
+const swatch = cls => `<svg class="swatch-line" viewBox="0 0 30 10"><line class="ln ${cls}" x1="2" y1="5" x2="28" y2="5"/></svg>`;
+const EXPLORE = {
+  sel: null, openDispute: null,
+  o: { terr: true, disp: true, chg: true, col: true, labels: true, allDisp: false, fitTerr: false, cents: new Set(CENTURIES) },
+  enter() {
+    MAP.setMode('political'); $('#legend').hidden = false; $('#searchbox').hidden = false;
+    this.legend(); this.countryLabels();
+    MAP.layoutHook = () => this.layout();
+    if (this.sel) this.select(this.sel, false); else { this.intro(); this.draw(); }
+    this.layout();
+  },
+  leave() { },
+  legend() {
+    const o = this.o;
+    const row = (k, cls, label) => `<label><input type="checkbox" data-k="${k}" ${o[k] ? 'checked' : ''}>${swatch(cls)}<span>${label}</span></label>`;
+    $('#legend').innerHTML = `<summary>Leyenda</summary><div class="rows">
+      <label style="cursor:default"><span></span>${swatch('ln-sel')}<span>País seleccionado</span></label>
+      ${row('terr', 'ln-terr', 'Territorio lejano del mismo país')}
+      ${row('disp', 'ln-red', 'Zona en disputa · conflicto activo')}
+      <label style="cursor:default"><span></span>${swatch('ln-orange')}<span>Zona en disputa · diplomática</span></label>
+      ${row('chg', 'ln-change', 'Cambio de frontera reciente (desde 1990)')}
+      ${row('col', 'ln-colony', 'Antigua colonia o territorio que le perteneció')}
+      <label><input type="checkbox" data-k="allDisp" ${o.allDisp ? 'checked' : ''}><span></span><span>Ver todas las disputas del mundo</span></label>
+      <label><input type="checkbox" data-k="labels" ${o.labels ? 'checked' : ''}><span></span><span>Nombres de países</span></label>
+      <label><input type="checkbox" data-k="fitTerr" ${o.fitTerr ? 'checked' : ''}><span></span><span>Encuadrar con todos sus territorios</span></label>
+      <div class="note">Las antiguas colonias se marcan solo en la parte que perteneció al país, con límites regionales actuales como aproximación.</div></div>`;
+    $$('#legend input[data-k]').forEach(i => i.onchange = () => {
+      o[i.dataset.k] = i.checked;
+      if (i.dataset.k === 'labels') { MAP.gLabels.attr('display', i.checked ? null : 'none'); return; }
+      if (i.dataset.k === 'fitTerr' && this.sel) { this.fly(); return; }
+      this.draw(); if (this.sel) this.panel();
+    });
+    if (isMobile()) $('#legend').open = false;
+  },
+  countryLabels() {
+    const data = Object.entries(D.info).filter(([id, e]) => e.lab && (e.state || e.kind === 'territory') && D.byId[id]).map(([id, e]) => {
+      const p = D.proj([e.lab[0], e.lab[1]]); const ml = e.lab[2] || 5;
+      return { id, x: p[0], y: p[1], text: e.name, minK: Math.pow(2, ml - 3.2), pri: ml + (e.state ? 0 : 2), em: ml < 3 ? 0.88 : ml < 4 ? 0.8 : 0.74, ls: 0.06 };
+    });
+    this.lab = MAP.gLabels.selectAll('text.lbl-cty').data(data).join('text').attr('class', 'lbl lbl-cty').attr('x', d => d.x).attr('y', d => d.y).attr('font-size', d => d.em + 'em').text(d => d.text);
+    MAP.gLabels.attr('display', this.o.labels ? null : 'none');
+  },
+  layout() { if (this.lab) MAP.layoutLabels(this.lab); if (this.cityLab) MAP.layoutLabels(this.cityLab, { always: d => d.cap }); },
+  hover(id, ev) {
+    if (!id) return tooltip(null);
+    const e = D.info[id]; if (!e) return tooltip(null);
+    const sov = e.kind === 'far' || e.kind === 'territory' ? `<span class="muted small">${e.kind === 'far' ? 'Parte de' : 'Territorio de'} ${esc(nameOf(e.sov))}</span>` : `<span class="muted small">${esc(e.reg || '')}</span>`;
+    tooltip(`<b>${esc(e.name)}</b>${sov}`, ev);
+  },
+  click(id) { if (!id) return; const f = D.byId[id]; const p = f && f.properties || {}; this.select(p.kind === 'far' ? p.sov : id, true); },
+  select(id, fly = true) {
+    if (!D.info[id]) return;
+    this.sel = id; this.openDispute = null; this.panel(); this.draw(); if (fly) this.fly();
+  },
+  fly() {
+    const id = this.sel; let b = homeBounds(id);
+    if (this.o.fitTerr) b = unionBounds([id, ...(D.parts[id] || [])]);
+    MAP.fit(b, { maxK: 40 });
+  },
+  disputesFor(id) {
+    const all = D.special.disputes;
+    if (!id) return [];
+    const extra = TERR_DISPUTE[id] || [];
+    return all.filter(d => d.parties.includes(id) || extra.includes(d.id) || d.geo.includes('c:' + id));
+  },
+  changesFor(id) { return id ? D.special.changes.filter(c => c.parties.includes(id) || c.geo.includes('c:' + id)) : []; },
+  coloniesFor(id) {
+    const list = D.special.colonies[id] || [];
+    return list.filter(e => { for (const c of this.o.cents) { const s = (c - 1) * 100, t = c * 100; if (e.a < t && e.b >= s) return true; } return false; });
+  },
+  draw() {
+    MAP.clearOverlays();
+    const id = this.sel, o = this.o, gS = MAP.gSpecial, gH = MAP.gHL;
+    const P = D.path;
+    const lines = (feats, cls, data) => { for (const f of feats) if (f) gS.append('path').attr('class', 'ln ' + cls).attr('d', P(f)); };
+    const hit = (feats, info) => { for (const f of feats) if (f) gS.append('path').attr('class', 'fill-hit').attr('d', P(f)).on('pointerenter', ev => tooltip(info, ev)).on('pointermove', ev => tooltip(info, ev)).on('pointerleave', () => tooltip(null)).on('click', ev => { ev.stopPropagation(); }); };
+    // colonias
+    if (id && o.col) for (const e of this.coloniesFor(id)) { const fs = e.geo.map(geoRef); lines(fs, 'ln-colony'); hit(fs, `<b>${esc(e.n)}</b>${esc(e.t)} · ${e.a}–${e.b}<br><span class="muted">${esc(e.end)}</span>`); }
+    // cambios
+    if (id && o.chg) for (const c of this.changesFor(id)) { const fs = c.geo.map(geoRef); lines(fs, 'ln-change'); hit(fs, `<b>${esc(c.name)} (${esc(c.year)})</b><span class="muted">${esc(c.why.slice(0, 160))}${c.why.length > 160 ? '…' : ''}</span>`); }
+    // disputas
+    const ds = o.allDisp ? D.special.disputes : (o.disp ? this.disputesFor(id) : []);
+    for (const d of ds) { const fs = d.geo.map(geoRef); lines(fs, d.nivel === 'rojo' ? 'ln-red' : 'ln-orange'); hit(fs, `<b>${esc(d.name)}</b>Entre: ${d.parties.map(nameOf).map(esc).join(' · ')}<br><span class="muted">Control de facto: ${esc(d.control)}</span>`); }
+    if (!id) return;
+    // territorios del mismo país (misma línea, discontinua)
+    const e = D.info[id];
+    if (o.terr) for (const t of (D.parts[id] || [])) { const f = D.byId[t]; gH.append('path').attr('class', 'ln ln-terr').attr('d', P(f)); }
+    // contorno del país
+    const f = D.byId[id];
+    gH.append('path').attr('class', 'ln ln-sel-halo').attr('d', P(f));
+    gH.append('path').attr('class', 'ln ln-sel').attr('d', P(f));
+    if (D.tiny.find(t => t.id === id)) { const t = D.tiny.find(t => t.id === id); gH.append('circle').attr('class', 'ln ln-sel').attr('cx', t.x).attr('cy', t.y).attr('r', 0.9); }
+    // ciudades
+    this.cities();
+  },
+  cities() {
+    const e = D.info[this.sel]; const g = MAP.gTop; g.selectAll('*').remove(); this.cityLab = null;
+    if (!e || !e.cities) return;
+    const data = e.cities.map(c => { const p = D.proj([c[1], c[2]]); const cap = c[3] === 1 || c[0] === e.cap; return { x: p[0], y: p[1], text: c[0], cap, pri: cap ? 0 : 1, em: cap ? 1 : 0.9, w: c[0].length * 0.55 + 1.6 }; });
+    this.cityLab = g.selectAll('text').data(data).join('text').attr('class', 'lbl lbl-city').attr('x', d => d.x).attr('y', d => d.y).attr('font-size', d => d.em + 'em').style('text-anchor', 'start')
+      .html(d => `<tspan class="${d.cap ? 'city-cap' : 'city-dot'}" dx="-0.35em" style="font-size:${d.cap ? 1.2 : 0.8}em">${d.cap ? '★' : '●'}</tspan><tspan dx="0.25em" style="${d.cap ? 'font-weight:700' : ''}">${esc(d.text)}</tspan>`);
+    MAP.onZoom(); this.layout();
+  },
+  intro() {
+    const n = D.states.length;
+    setPanel(`<div class="stack">
+      <div class="eyebrow">Explorar</div><h2>Elige cualquier país</h2>
+      <p>Haz clic en el mapa o búscalo arriba. Verás su ficha completa y, sobre el mapa, sus territorios lejanos, zonas en disputa, cambios de frontera recientes y antiguas colonias.</p>
+      <p class="muted small">${n} Estados (193 de la ONU, más Ciudad del Vaticano, Palestina, Kosovo y Taiwán) y unos 50 territorios. Los países diminutos tienen un círculo para poder pulsarlos.</p>
+      <div class="sec"><h4>Prueba con</h4><div class="chips">${['DNK', 'ESP', 'GBR', 'FRA', 'IND', 'UKR', 'MAR', 'ISR', 'CHN', 'ARG'].map(c => `<button class="chip" data-go="${c}">${esc(nameOf(c))}</button>`).join('')}</div></div>
+    </div>`);
+    $$('[data-go]').forEach(b => b.onclick = () => this.select(b.dataset.go));
+  },
+  panel() {
+    const id = this.sel, e = D.info[id]; if (!e) return;
+    const isState = !!e.state, o = this.o;
+    const lvls = ['cap', 'capc', 'mapn', 'mapc', 'flag', 'flagc'].map(m => STORE.level(m + '|' + id));
+    const mast = isState && lvls.some(l => l > 0) ? `<div class="sec"><h4>Tu progreso con este país</h4><ul class="list">${lvls.map((l, i) => `<li><div class="li"><span class="dot" style="background:${LEVELS[l].c};margin-top:6px"></span><span>${POL_TYPES[i].n}</span><span class="meta">${LEVELS[l].n}</span></div></li>`).join('')}</ul></div>` : '';
+    const facts = [];
+    if (e.cap) facts.push(['Capital', esc(e.cap) + (e.capn ? `<br><span class="muted small">${esc(e.capn)}</span>` : '')]);
+    if (e.pop != null) facts.push(['Población', fmtPop(e.pop)]);
+    if (e.area) facts.push(['Superficie', fmtArea(e.area)]);
+    if (e.langN) facts.push(['Idioma oficial', verif(e.langN)]);
+    if (e.langR) facts.push(['Cooficiales regionales', verif(e.langR)]);
+    if (!e.langN && e.lang && e.lang.length) facts.push(['Idiomas', esc(e.lang.join(', '))]);
+    if (e.cur && e.cur.length) facts.push(['Moneda', esc(e.cur.join(', '))]);
+    const sov = !isState && e.sov && e.sov !== id ? `<p>Pertenece a <button class="linkbtn" data-go="${e.sov}">${esc(nameOf(e.sov))}</button>${e.kind === 'territory' ? ' (territorio dependiente o de ultramar)' : ''}.</p>` : '';
+    const terrs = (D.parts[id] || []).map(t => `<li><button data-go="${t}">${swatch('ln-terr')}<span>${esc(nameOf(t))}</span><span class="meta">${D.byId[t].properties.kind === 'far' ? 'parte integrante' : 'dependencia'}</span></button></li>`).join('');
+    const disp = this.disputesFor(id);
+    const chg = this.changesFor(id);
+    const cols = D.special.colonies[id] || [];
+    const colsF = this.coloniesFor(id);
+    const cities = (e.cities || []).map((c, i) => `<li><button data-city="${i}"><span>${c[3] === 1 || c[0] === e.cap ? '★' : '·'}</span><span>${esc(c[0])}</span><span class="meta">${c[4] ? nf.format(Math.round(c[4] / 1000) * 1000) : ''}</span></button></li>`).join('');
+    const nbs = (e.borders || []).filter(b => D.info[b]).map(b => `<button class="chip" data-go="${b}">${esc(nameOf(b))}</button>`).join('');
+    const dItem = d => `<li><button data-disp="${d.id}"><span class="dot" style="background:var(--dispute-${d.nivel === 'rojo' ? 'red' : 'orange'})"></span><span>${esc(d.name)}</span><span class="meta">${d.parties.filter(p => p !== id).map(nameOf).slice(0, 2).join(', ')}</span></button>${this.openDispute === d.id ? `<div class="card small" style="margin:4px 0 8px;display:grid;gap:6px"><div><b>Países implicados:</b> ${d.parties.map(p => D.info[p] ? `<button class="linkbtn" data-go="${p}">${esc(nameOf(p))}</button>` : esc(p)).join(', ')}</div><div><b>Control de facto:</b> ${esc(d.control)}</div><div>${esc(d.why)}</div></div>` : ''}</li>`;
+    setPanel(`<div class="stack">
+      <div class="eyebrow">${esc(isState ? [e.reg, e.state && D.info[id].kind !== 'state' ? '' : ''].filter(Boolean).join(' · ') : (e.kind === 'far' ? 'Parte lejana de un país' : 'Territorio'))}</div>
+      <div><h2>${esc(e.name)}</h2>${e.off && e.off !== e.name ? `<div class="muted small">${esc(e.off)}</div>` : ''}</div>
+      <div class="flag-big">${flagSvg(id)}</div>
+      ${sov}
+      ${e.note ? `<p class="small">${esc(e.note)}</p>` : ''}
+      <dl class="facts">${facts.map(f => `<dt>${f[0]}</dt><dd>${f[1]}</dd>`).join('')}</dl>
+      ${cities ? `<div class="sec"><h4>Ciudades importantes</h4><ul class="list">${cities}</ul></div>` : ''}
+      ${isState ? `
+      <div class="sec"><h4>Situación política</h4><p><b>${esc(e.gov)}</b></p><p>${verif(e.lead)}</p></div>
+      <div class="sec"><h4>Guerra y conflictos</h4><p>${verif(e.war)}</p></div>
+      <div class="sec"><h4>Pasado colonial</h4><p>${verif(e.col)}</p></div>
+      <div class="sec"><h4>Religión</h4><p>${verif(e.rel)}</p></div>
+      <div class="sec"><h4>Lo más famoso de aquí</h4><p><b>Persona:</b> ${esc(e.per)}</p><p><b>Cosa:</b> ${esc(e.thing)}</p></div>` : ''}
+      ${terrs ? `<div class="sec"><h4>Territorios lejanos ${o.terr ? '' : '<span class="muted">(ocultos)</span>'}</h4><ul class="list">${terrs}</ul></div>` : ''}
+      ${disp.length ? `<div class="sec"><h4>Zonas en disputa ${o.disp || o.allDisp ? '' : '<span class="muted">(ocultas)</span>'}</h4><ul class="list">${disp.map(dItem).join('')}</ul></div>` : ''}
+      ${chg.length ? `<div class="sec"><h4>Cambios de frontera desde 1990</h4><ul class="list">${chg.map(c => `<li><div class="li">${swatch('ln-change')}<span><b>${esc(c.name)}</b> <span class="muted">(${esc(c.year)})</span><br><span class="small">${esc(c.why)}</span></span></div></li>`).join('')}</ul></div>` : ''}
+      ${cols.length ? `<div class="sec"><h4>Antiguas colonias y territorios <span class="muted">${colsF.length}/${cols.length}</span></h4>
+        <div class="chips">${CENTURIES.map(c => `<button class="chip" data-cent="${c}" aria-pressed="${o.cents.has(c)}">s. ${roman(c)}</button>`).join('')}</div>
+        <ul class="list">${colsF.map((c, i) => `<li><button data-col="${cols.indexOf(c)}">${swatch('ln-colony')}<span>${esc(c.n)}<br><span class="small muted">${esc(c.t)} · ${c.a}–${c.b} · ${esc(c.end)}</span></span></button></li>`).join('')}</ul></div>` : ''}
+      ${mast}
+      ${nbs ? `<div class="sec"><h4>Países vecinos</h4><div class="chips">${nbs}</div></div>` : ''}
+      <p class="muted small">Datos políticos y de conflictos con referencia a ${REF_DATE}. Lo marcado con <span class="chk">verificar</span> puede haber cambiado.</p>
+    </div>`);
+    const body = $('#panelBody');
+    $$('[data-go]', body).forEach(b => b.onclick = () => { const t = b.dataset.go; const f = D.byId[t]; if (f && f.properties && f.properties.kind === 'far') { MAP.fit(D.bbox[t], { maxK: 40 }); } else this.select(t); });
+    $$('[data-city]', body).forEach(b => b.onclick = () => { const c = e.cities[+b.dataset.city]; const p = D.proj([c[1], c[2]]); MAP.fit([[p[0] - 4, p[1] - 3], [p[0] + 4, p[1] + 3]], { maxK: 30 }); });
+    $$('[data-disp]', body).forEach(b => b.onclick = () => { const d = D.special.disputes.find(x => x.id === b.dataset.disp); this.openDispute = this.openDispute === d.id ? null : d.id; this.panel(); if (this.openDispute) { if (!o.disp && !o.allDisp) { o.disp = true; this.legend(); this.draw(); } MAP.fit(boundsOf(d.geo.map(geoRef)), { maxK: 40 }); } });
+    $$('[data-cent]', body).forEach(b => b.onclick = () => { const c = +b.dataset.cent; o.cents.has(c) ? o.cents.delete(c) : o.cents.add(c); this.panel(); this.draw(); });
+    $$('[data-col]', body).forEach(b => b.onclick = () => { const c = cols[+b.dataset.col]; if (!o.col) { o.col = true; this.legend(); this.draw(); } MAP.fit(boundsOf(c.geo.map(geoRef)), { maxK: 30 }); });
+  }
+};
+APP.tabs.explorar = EXPLORE;
+
+/* ============ CARTOGRAFÍA ============ */
+const clampLat = (r, lim) => (l, p) => r(l, Math.max(-lim, Math.min(lim, p)));
+const PROJS = [
+  { id: 'mercator', n: 'Mercator', f: () => d3.geoMercator(), raw: clampLat(d3.geoMercatorRaw, 1.45), surf: 'cilindrica', prop: 'conforme', au: 'Gerardus Mercator', yr: '1569', keeps: 'Conserva los ángulos y las formas locales; las líneas de rumbo constante (loxodromias) son rectas.', dist: 'Las áreas se inflan hacia los polos: Groenlandia parece tan grande como África, que es 14 veces mayor. Los polos no se pueden representar.', use: 'Navegación marítima y mapas web (Google Maps y OpenStreetMap usan una variante).', lim: 85 },
+  { id: 'utm', n: 'Mercator transversa (UTM)', f: () => d3.geoTransverseMercator(), surf: 'cilindrica', prop: 'conforme', au: 'Johann Heinrich Lambert; sistema UTM de 1947', yr: '1772', keeps: 'Conserva los ángulos; es casi perfecta cerca del meridiano central.', dist: 'La deformación crece al alejarse del meridiano central; por eso el sistema UTM divide el mundo en 60 husos de 6°.', use: 'Mapas topográficos (en España, el Mapa Topográfico Nacional), GPS y catastro.', anim: false },
+  { id: 'gall', n: 'Gall-Peters', f: () => d3.geoCylindricalEqualArea().parallel(45), raw: d3.geoCylindricalEqualAreaRaw(Math.PI / 4), surf: 'cilindrica', prop: 'equivalente', au: 'James Gall (1855); popularizada por Arno Peters', yr: '1855 / 1973', keeps: 'Conserva las áreas: los tamaños relativos de los países son reales.', dist: 'Deforma mucho las formas: los países tropicales se ven estirados en vertical y los de latitudes altas, aplastados.', use: 'Divulgación sobre el tamaño real del hemisferio sur; algunos colegios y ONG.' },
+  { id: 'plate', n: 'Equirrectangular (placa cuadrada)', f: () => d3.geoEquirectangular(), raw: d3.geoEquirectangularRaw, surf: 'cilindrica', prop: 'equidistante', au: 'Atribuida a Marino de Tiro', yr: 'c. 100', keeps: 'Conserva las distancias a lo largo de los meridianos; la retícula es una cuadrícula perfecta.', dist: 'Ni áreas ni formas: las regiones polares se estiran en horizontal.', use: 'Imágenes de satélite e imágenes de relieve en SIG (este atlas usa una como fuente).' },
+  { id: 'mollweide', n: 'Mollweide', f: () => d3.geoMollweide(), raw: d3.geoMollweideRaw, surf: 'pseudocilindrica', prop: 'equivalente', au: 'Karl Brandan Mollweide', yr: '1805', keeps: 'Conserva las áreas; el mundo cabe en una elipse.', dist: 'Las formas se deforman en los bordes, sobre todo en latitudes altas.', use: 'Mapas temáticos de distribución mundial y mapas del cielo (radiación de fondo cósmico).' },
+  { id: 'robinson', n: 'Robinson', f: () => d3.geoRobinson(), raw: d3.geoRobinsonRaw, surf: 'pseudocilindrica', prop: 'afilactica', au: 'Arthur H. Robinson', yr: '1963', keeps: 'Ninguna propiedad exacta: busca que el mundo «se vea bien».', dist: 'Deformaciones moderadas de todo tipo; los polos son líneas.', use: 'Atlas escolares y National Geographic (1988-1998).' },
+  { id: 'winkel', n: 'Winkel Tripel', f: () => d3.geoWinkel3(), raw: d3.geoWinkel3Raw, surf: 'otra', prop: 'afilactica', au: 'Oswald Winkel', yr: '1921', keeps: 'Compromiso que minimiza a la vez la deformación de áreas, ángulos y distancias.', dist: 'Pequeñas deformaciones repartidas; los meridianos se curvan.', use: 'National Geographic desde 1998 y muchos atlas.' },
+  { id: 'equalearth', n: 'Equal Earth', f: () => d3.geoEqualEarth(), raw: d3.geoEqualEarthRaw, surf: 'pseudocilindrica', prop: 'equivalente', au: 'Bojan Šavrič, Tom Patterson y Bernhard Jenny', yr: '2018', keeps: 'Conserva las áreas con un aspecto parecido a Robinson.', dist: 'Formas algo comprimidas cerca de los polos.', use: 'Mapas temáticos modernos; la NASA y este atlas.' },
+  { id: 'lcc', n: 'Cónica conforme de Lambert', f: () => d3.geoConicConformal().parallels([30, 60]).rotate([-10, 0]), ext: [[-180, -30], [180, 84]], anim: false, surf: 'conica', prop: 'conforme', au: 'Johann Heinrich Lambert', yr: '1772', keeps: 'Conserva los ángulos; muy precisa en la franja entre sus dos paralelos estándar.', dist: 'Lejos de esos paralelos, las áreas se deforman mucho; el hemisferio sur crece hasta el infinito, por eso aquí se corta a 30° S. No sirve para el mundo entero.', use: 'Cartas aeronáuticas y mapas oficiales de Europa (ETRS89-LCC).', rot: -10 },
+  { id: 'albers', n: 'Cónica equivalente de Albers', f: () => d3.geoConicEqualArea().parallels([20, 50]).rotate([-10, 0]), raw: d3.geoConicEqualAreaRaw(Math.PI / 9, Math.PI * 5 / 18), surf: 'conica', prop: 'equivalente', au: 'Heinrich C. Albers', yr: '1805', keeps: 'Conserva las áreas.', dist: 'Las formas se deforman lejos de los paralelos estándar.', use: 'Mapas de EE. UU. del Servicio Geológico (USGS) y mapas temáticos de países extensos.', rot: -10 },
+  { id: 'azeq', n: 'Azimutal equidistante', f: () => d3.geoAzimuthalEquidistant().rotate([0, -90]), raw: d3.geoAzimuthalEquidistantRaw, surf: 'azimutal', prop: 'equidistante', au: 'Usada por al-Biruni; Guillaume Postel', yr: 'c. 1000 / 1581', keeps: 'Las distancias y direcciones desde el centro son exactas.', dist: 'Fuera del centro todo se deforma; el punto opuesto se convierte en el círculo exterior.', use: 'Emblema de la ONU, radioaficionados y sismología (distancias desde un punto).', clip: 179.9, phi: -90 },
+  { id: 'stereo', n: 'Estereográfica', f: () => d3.geoStereographic().rotate([0, -90]).clipAngle(130), raw: d3.geoStereographicRaw, surf: 'azimutal', prop: 'conforme', au: 'Hiparco de Nicea', yr: 'c. 150 a. C.', keeps: 'Conserva los ángulos y transforma los círculos en círculos.', dist: 'Las áreas crecen muy rápido al alejarse del centro.', use: 'Mapas de las regiones polares, astrolabios y cristalografía.', clip: 130, phi: -90 },
+  { id: 'gnomonic', n: 'Gnomónica', f: () => d3.geoGnomonic().rotate([0, -90]).clipAngle(60), surf: 'azimutal', prop: 'afilactica', au: 'Atribuida a Tales de Mileto', yr: 'c. 600 a. C.', keeps: 'Todos los círculos máximos son rectas: la ruta más corta entre dos puntos es una línea recta.', dist: 'Deformación enorme; no puede mostrar ni medio mundo.', use: 'Navegación: se traza la ruta ortodrómica con una regla.', clip: 60, phi: -90, anim: false },
+  { id: 'ortho', n: 'Ortográfica', f: () => d3.geoOrthographic().rotate([0, -30]), raw: d3.geoOrthographicRaw, surf: 'azimutal', prop: 'afilactica', au: 'Hiparco de Nicea (uso en Durero)', yr: 'c. 150 a. C.', keeps: 'Muestra la Tierra como se ve desde el espacio lejano.', dist: 'Solo un hemisferio; los bordes se comprimen mucho.', use: 'Ilustraciones del globo y vistas en perspectiva.', clip: 90, phi: -30 },
+  { id: 'goode', n: 'Goode homolosena interrumpida', f: () => d3.geoInterruptedHomolosine(), surf: 'otra', prop: 'equivalente', au: 'John Paul Goode', yr: '1923', keeps: 'Conserva las áreas y, al cortar los océanos, también bastante bien las formas de los continentes.', dist: 'Los océanos quedan partidos en gajos.', use: 'Mapas de distribución de usos del suelo, clima o población.', anim: false }
+];
+function extOf(def, p) { const c = p ? -p.rotate()[0] : 0; const e = def.ext || (def.lim ? [[-180, -def.lim], [180, def.lim]] : null); return e ? [[c + Math.max(e[0][0], -179.99), e[0][1]], [c + Math.min(e[1][0], 179.99), e[1][1]]] : null; }
+function gratOf(def, p, step) { const e = extOf(def, p); const g = d3.geoGraticule(); if (e) g.extent(e); if (step) g.step(step); return g; }
+function targetOf(def, p) { return def && def.surf !== 'azimutal' && extOf(def, p) ? gratOf(def, p).outline() : { type: 'Sphere' }; }
+function projFit(p, w, h, pad = 8) { const def = PROJS.find(x => x.id === p.id); p._proj.fitExtent([[pad, pad], [w - pad, h - pad]], targetOf(def, p._proj)); }
+function makeProj(def) { const p = def.f(); if (def.lim || def.ext) p.clipExtent(null); return p; }
+function projThumb(def, w = 360, h = 220) {
+  const p = makeProj(def); const o = { id: def.id, _proj: p }; projFit(o, w, h);
+  const path = d3.geoPath(p); const land = CARTO.land();
+  const tg = targetOf(def, p), gr = gratOf(def, p, [30, 30])();
+  const cid = 'tc' + def.id;
+  return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Mapa en proyección"><defs><clipPath id="${cid}"><path d="${path(tg)}"/></clipPath></defs><path d="${path(tg)}" fill="var(--ocean)" stroke="var(--muted)" stroke-width=".8"/><g clip-path="url(#${cid})"><path d="${path(gr)}" fill="none" stroke="var(--grat)" stroke-width=".6"/><path d="${path(land)}" fill="var(--p2)" stroke="var(--muted)" stroke-width=".4"/></g></svg>`;
+}
+const CARTO = {
+  page: true, built: false,
+  land() { if (!this._land) { this._land = topojson.feature(D.sphere, D.sphere.objects.land); this._cty = topojson.feature(D.sphere, D.sphere.objects.countries); } return this._land; },
+  enter() {
+    const pg = $('#page');
+    if (!this.built || !pg.querySelector('.carto')) { pg.innerHTML = this.html(); this.built = true; this.init(); }
+    else pg.scrollTop = 0;
+  },
+  leave() { if (this.raf) cancelAnimationFrame(this.raf); },
+  html() {
+    return `<div class="page-inner carto">
+    <header style="display:grid;gap:10px;padding-bottom:10px">
+      <div class="eyebrow">Cartografía general</div>
+      <h2>Cómo se dibuja la Tierra en un plano</h2>
+      <p class="lead">Coordenadas para situar cualquier punto, y proyecciones para pasar una esfera a un papel. Todo lo de esta página entra también en el examen de cartografía.</p>
+      <nav class="toc">${[['coord', 'Coordenadas'], ['lineas', 'Líneas notables'], ['husos', 'Husos horarios'], ['ortodromia', 'Círculos máximos'], ['naranja', 'La piel de naranja'], ['superficies', 'Superficies de proyección'], ['propiedades', 'Qué conserva cada una'], ['explorador', 'Explorador de proyecciones'], ['tamano', 'Tamaño real']].map(([a, n]) => `<a class="chip" href="#cartografia" data-jump="${a}">${n}</a>`).join('')}</nav>
+    </header>
+    <section id="s-coord">
+      <div class="eyebrow">01 · Coordenadas geográficas</div>
+      <h3>Paralelos y meridianos</h3>
+      <div class="split">
+        <div class="figure"><svg id="globe" viewBox="0 0 520 520" style="touch-action:none;cursor:grab"></svg><figcaption>Arrastra para girar el globo. Haz clic para leer las coordenadas de un punto. La línea rosa discontinua que se tuerce no es un meridiano: es la línea internacional de cambio de fecha (ver «Líneas notables»).</figcaption></div>
+        <div class="stack">
+          <p><b>Los paralelos</b> son círculos horizontales paralelos al ecuador. Indican la <b>latitud</b>: el ángulo al norte o al sur del ecuador, de 0° a 90° N o S. Son <i>círculos menores</i>, salvo el ecuador, y se encogen hacia los polos.</p>
+          <p><b>Los meridianos</b> son semicírculos que unen los polos. Indican la <b>longitud</b>: el ángulo al este o al oeste del meridiano de Greenwich, de 0° a 180° E u O. Todos miden lo mismo y son mitades de <i>círculos máximos</i>.</p>
+          <div class="card" id="coordOut" style="display:grid;gap:4px"><div class="eyebrow">Punto seleccionado</div><div class="muted">Haz clic en el globo.</div></div>
+          <div class="card stack" style="gap:8px"><div class="eyebrow">Grados, minutos y segundos ⇄ decimales</div>
+            <p class="small">1° = 60′ y 1′ = 60″. Así, 40,4168° equivale a 40° 25′ 0,5″. La forma decimal es la que usan el GPS y los mapas web.</p>
+            <div class="row"><input id="decIn" class="kv" value="40.4168" style="width:110px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel)" aria-label="Grados decimales"><span>→</span><b class="kv" id="dmsOut"></b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="s-lineas">
+      <div class="eyebrow">02 · Líneas notables</div>
+      <h3>Por qué los trópicos y los círculos polares están donde están</h3>
+      <div class="split">
+        <div class="stack">
+          <p>El eje de la Tierra está inclinado unos <b>23,44°</b> respecto a la perpendicular de su órbita. Esa inclinación fija las líneas notables:</p>
+          <ul class="list" id="lineList"></ul>
+          <p class="small muted">Pulsa una línea para resaltarla en el globo.</p>
+        </div>
+        <div class="figure">${tiltSvg()}<figcaption>Solsticio de junio: el Sol cae vertical sobre el trópico de Cáncer y no se pone dentro del círculo polar ártico.</figcaption></div>
+      </div>
+    </section>
+    <section id="s-husos">
+      <div class="eyebrow">03 · Husos horarios</div>
+      <h3>15° de longitud = 1 hora</h3>
+      <p>La Tierra gira 360° en 24 horas, así que cada hora gira 15°. Por eso hay 24 husos teóricos de 15°, centrados en múltiplos de 15° desde Greenwich (UTC). En la práctica los países ajustan los husos a sus fronteras: China usa una sola hora para un país que abarca casi cinco husos, y España usa UTC+1 aunque casi toda la Península está en el huso de Greenwich.</p>
+      <div class="figure">
+        <div class="row" style="justify-content:space-between"><div class="seg" id="tzMode"><button data-m="map" aria-pressed="true">Mapa</button><button data-m="globe" aria-pressed="false">Globo</button></div><label class="toggle small"><input type="checkbox" id="tzTheo" checked>Husos teóricos de 15°</label></div>
+        <svg id="tzMap" viewBox="0 0 900 480" style="touch-action:none" role="img" aria-label="Mapa de husos horarios"></svg>
+        <div class="card small" id="tzInfo">Pasa el ratón o pulsa sobre una zona para ver su hora y los países que la usan.</div>
+        <figcaption>Colores: las zonas horarias reales, que siguen fronteras. Líneas discontinuas: los límites teóricos cada 15°, que son meridianos. Se muestra la hora estándar, sin horario de verano. Fuente: Natural Earth, corregida con los cambios hasta 2024 (Rusia, Kazajistán, Turquía, Venezuela, Sudán, Marruecos…).</figcaption>
+      </div>
+      <div class="figure" style="overflow-x:auto">${tzSvg()}<figcaption>Husos teóricos. La línea internacional de cambio de fecha sigue el antimeridiano (180°) con desvíos para no partir países en dos días distintos, como Kiribati, que en 1995 la desplazó al este de sus islas.</figcaption></div>
+    </section>
+    <section id="s-ortodromia">
+      <div class="eyebrow">04 · Círculos máximos</div>
+      <h3>Por qué la ruta más corta parece curva</h3>
+      <div class="split">
+        <div class="figure"><svg id="gcMap" viewBox="0 0 560 400"></svg><figcaption><span style="color:var(--sel)">━</span> ortodromia (círculo máximo, la ruta más corta) · <span style="color:var(--dispute-orange)">┅</span> loxodromia (rumbo constante, recta en Mercator)</figcaption></div>
+        <div class="stack">
+          <p>Un <b>círculo máximo</b> es cualquier círculo cuyo centro es el centro de la Tierra: el ecuador y todos los meridianos lo son. El arco de círculo máximo entre dos puntos es la ruta más corta (<b>ortodromia</b>). Los demás paralelos son <b>círculos menores</b>.</p>
+          <p>En la proyección de Mercator, la ortodromia se ve curvada hacia el polo porque el mapa estira las latitudes altas. Por eso los vuelos de Madrid a Tokio pasan por Siberia.</p>
+          <div class="row"><select id="gcA" aria-label="Origen"></select><span>→</span><select id="gcB" aria-label="Destino"></select></div>
+          <div class="card small" id="gcOut"></div>
+        </div>
+      </div>
+    </section>
+    <section id="s-naranja">
+      <div class="eyebrow">05 · Proyecciones</div>
+      <h3>La piel de naranja: no se puede aplanar una esfera sin deformarla</h3>
+      <p>Si pelas una naranja y aplastas la piel, se rompe o se estira. Con la Tierra pasa lo mismo (lo demostró Gauss en 1827): <b>ningún mapa plano conserva a la vez áreas, ángulos y distancias</b>. Cuantos más cortes, menos deformación, pero más huecos.</p>
+      <div class="figure"><svg id="peel" viewBox="0 0 900 440"></svg><div class="row"><span class="small muted">Gajos:</span><div class="seg" id="peelSeg">${[1, 4, 8, 12, 24].map(n => `<button data-g="${n}" aria-pressed="${n === 12}">${n}</button>`).join('')}</div></div><figcaption>Proyección sinusoidal interrumpida en gajos, como la piel de una naranja.</figcaption></div>
+    </section>
+    <section id="s-superficies">
+      <div class="eyebrow">06 · Clasificación por superficie</div>
+      <h3>Cilindro, cono o plano</h3>
+      <p>Muchas proyecciones se entienden imaginando una superficie desarrollable que envuelve o toca el globo, sobre la que se proyecta y que después se «desenrolla».</p>
+      <div class="grid2">${surfFigs()}</div>
+    </section>
+    <section id="s-propiedades">
+      <div class="eyebrow">07 · Clasificación por propiedad</div>
+      <h3>Cada proyección sacrifica algo</h3>
+      <div class="grid2">
+        ${[['Conformes', 'Conservan los <b>ángulos</b> y las formas en zonas pequeñas. Deforman las áreas.', 'Mercator, Mercator transversa, Lambert cónica, estereográfica', 'var(--sel)'], ['Equivalentes', 'Conservan las <b>áreas</b> (los tamaños relativos). Deforman las formas.', 'Gall-Peters, Mollweide, Equal Earth, Albers, Goode', 'var(--ok)'], ['Equidistantes', 'Conservan las <b>distancias</b> desde un punto o a lo largo de ciertas líneas.', 'Azimutal equidistante, equirrectangular', 'var(--dispute-orange)'], ['Afilácticas (de compromiso)', 'No conservan nada exacto, pero <b>reparten</b> la deformación para que el conjunto se vea equilibrado.', 'Robinson, Winkel Tripel, ortográfica, gnomónica', 'var(--colony)']].map(([t, d, ex, c]) => `<div class="card stack" style="gap:6px;border-top:4px solid ${c}"><h3>${t}</h3><p>${d}</p><p class="small muted">Ejemplos: ${ex}</p></div>`).join('')}
+      </div>
+      <p class="small muted">Una proyección no puede ser a la vez conforme y equivalente.</p>
+    </section>
+    <section id="s-explorador">
+      <div class="eyebrow">08 · Explorador de proyecciones</div>
+      <h3>Mira cómo deforma cada una</h3>
+      <div class="split">
+        <div class="figure"><canvas id="projCv" width="720" height="440" aria-label="Mapa del mundo en la proyección elegida"></canvas>
+          <div class="row"><label class="toggle"><input type="checkbox" id="tissot" checked>Indicatriz de Tissot</label><label class="toggle"><input type="checkbox" id="heat">Deformación de áreas</label></div>
+          <div class="row small"><span class="muted">Centro</span><label>long. <input type="range" id="rotL" min="-180" max="180" value="0" aria-label="Longitud central"></label><label>lat. <input type="range" id="rotP" min="-90" max="90" value="0" aria-label="Latitud central"></label></div>
+          <figcaption id="projCap">Los círculos de Tissot tienen todos el mismo tamaño real sobre el globo: en el mapa revelan cómo se deforman áreas y formas en cada lugar.</figcaption></div>
+        <div class="stack"><select id="projSel" aria-label="Proyección" style="padding:8px;border-radius:9px;border:1px solid var(--line);background:var(--panel)">${PROJS.map(p => `<option value="${p.id}">${p.n}</option>`).join('')}</select><div class="card" id="projInfo"></div><div id="heatLeg" class="small muted" hidden></div></div>
+      </div>
+    </section>
+    <section id="s-tamano" style="border-bottom:0">
+      <div class="eyebrow">09 · Tamaño real</div>
+      <h3>Arrastra un país hacia el ecuador</h3>
+      <div class="split">
+        <div class="figure"><svg id="tsMap" viewBox="0 0 600 520" style="touch-action:none"></svg><figcaption>Mercator. África, en gris oscuro, sirve de referencia. Arrastra el país y mira cómo «encoge» al acercarse al ecuador: su tamaño real no cambia.</figcaption></div>
+        <div class="stack"><div class="chips" id="tsPick"></div><div class="card" id="tsOut"></div><button class="btn sm" id="tsReset">Devolver a su sitio</button></div>
+      </div>
+    </section></div>`;
+  },
+  init() {
+    this.land();
+    $$('[data-jump]').forEach(a => a.onclick = e => { e.preventDefault(); $('#s-' + a.dataset.jump).scrollIntoView({ behavior: 'smooth' }); });
+    this.initGlobe(); this.initDms(); this.initGC(); this.initTZ(); this.initPeel(); this.initExplorer(); this.initTrueSize();
+  },
+  /* ----- globo ----- */
+  lines() {
+    const lat = (n, v, d) => ({ n, d, g: { type: 'LineString', coordinates: d3.range(-180, 180.1, 2).map(x => [x, v]) } });
+    const lon = (n, v, d) => ({ n, d, g: { type: 'LineString', coordinates: d3.range(-90, 90.1, 2).map(y => [v, y]) } });
+    return [lat('Ecuador', 0, '0°. Divide la Tierra en hemisferios norte y sur; es el círculo máximo de los paralelos.'), lat('Trópico de Cáncer', 23.44, '23° 26′ N. El punto más al norte donde el Sol cae vertical (solsticio de junio).'), lat('Trópico de Capricornio', -23.44, '23° 26′ S. El punto más al sur donde el Sol cae vertical (solsticio de diciembre).'), lat('Círculo polar ártico', 66.56, '66° 34′ N (= 90° − 23,44°). Al norte hay al menos un día de sol de medianoche y una noche polar al año.'), lat('Círculo polar antártico', -66.56, '66° 34′ S. Lo mismo en el hemisferio sur.'), lon('Meridiano de Greenwich', 0, '0°. Meridiano de referencia desde la Conferencia de Washington (1884); pasa por el observatorio de Greenwich (Londres) y por Castellón.'), lon('Antimeridiano', 180, '180°. El opuesto de Greenwich, en mitad del Pacífico.'), { n: 'Línea internacional de cambio de fecha', d: 'No es un meridiano, aunque lo parezca: es una frontera acordada entre países, no una línea geométrica. Sigue más o menos el antimeridiano (180°), pero se tuerce a propósito para que ningún país quede partido en dos fechas distintas: rodea el extremo de Siberia (Chukotka sigue en el mismo día que el resto de Rusia), deja las Aleutianas con Alaska, hace un gran saliente al este para que todo Kiribati comparta fecha (1995) y pasa al este de Samoa, que en 2011 se saltó el 30 de diciembre para tener el mismo día que Australia y Nueva Zelanda. Al cruzarla hacia el oeste se suma un día; hacia el este se resta. Trazado aproximado.', g: { type: 'LineString', coordinates: [[180, 90], [180, 75], [-169, 68.3], [-169, 65], [180, 52], [180, 5], [-150, 5], [-150, -10], [-170.9, -10], [-170.9, -25], [180, -45], [180, -90]] } }];
+  },
+  initGlobe() {
+    const svg = d3.select('#globe'), W = 520, proj = d3.geoOrthographic().scale(240).translate([W / 2, W / 2]).rotate([10, -25]).clipAngle(90), path = d3.geoPath(proj);
+    const lines = this.lines(); let hl = 0;
+    svg.append('circle').attr('cx', W / 2).attr('cy', W / 2).attr('r', 240).attr('fill', 'var(--ocean)').attr('stroke', 'var(--muted)');
+    const grat = svg.append('path').attr('fill', 'none').attr('stroke', 'var(--grat)').attr('stroke-width', .7);
+    const land = svg.append('path').attr('fill', 'var(--p2)').attr('stroke', 'var(--muted)').attr('stroke-width', .4);
+    const lg = svg.append('g'); const pt = svg.append('g');
+    const colors = ['var(--dispute-red)', 'var(--dispute-orange)', 'var(--dispute-orange)', 'var(--change)', 'var(--change)', 'var(--sel)', 'var(--colony)', '#d63384'];
+    let clickP = null;
+    const draw = () => {
+      grat.attr('d', path(d3.geoGraticule().step([15, 15])())); land.attr('d', path(this._land));
+      lg.selectAll('path').data(lines).join('path').attr('fill', 'none').attr('stroke', (d, i) => colors[i]).attr('stroke-width', (d, i) => i === hl ? 4 : 1.6).attr('stroke-dasharray', (d, i) => i === 7 ? '6 4' : null).attr('opacity', (d, i) => i === hl ? 1 : .55).attr('d', d => path(d.g));
+      pt.selectAll('*').remove(); if (clickP) { const p = proj(clickP); const vis = d3.geoDistance(clickP, [-proj.rotate()[0], -proj.rotate()[1]]) < Math.PI / 2; if (vis) pt.append('circle').attr('cx', p[0]).attr('cy', p[1]).attr('r', 6).attr('fill', '#ffde3b').attr('stroke', 'var(--ink)').attr('stroke-width', 2); }
+    };
+    let r0, p0, moved = false;
+    svg.call(d3.drag().on('start', ev => { r0 = proj.rotate(); p0 = [ev.x, ev.y]; moved = false; svg.style('cursor', 'grabbing'); }).on('drag', ev => { const dx = ev.x - p0[0], dy = ev.y - p0[1]; if (Math.abs(dx) + Math.abs(dy) > 3) moved = true; proj.rotate([r0[0] + dx * 0.35, Math.max(-90, Math.min(90, r0[1] - dy * 0.35))]); draw(); }).on('end', ev => { svg.style('cursor', 'grab'); if (!moved) { const [x, y] = d3.pointer(ev.sourceEvent, svg.node()); const ll = proj.invert([x * 1, y * 1]); if (ll && Math.hypot(x - W / 2, y - W / 2) < 240) { clickP = ll; this.showCoord(ll); draw(); } } }));
+    draw(); this.globeDraw = draw;
+    const ul = $('#lineList'); ul.innerHTML = lines.map((l, i) => `<li><button data-l="${i}"><span class="dot" style="background:${colors[i]}"></span><span><b>${l.n}</b><br><span class="small">${l.d}</span></span></button></li>`).join('');
+    $$('[data-l]', ul).forEach(b => b.onclick = () => { hl = +b.dataset.l; const l = lines[hl]; const c = l.g.coordinates[Math.floor(l.g.coordinates.length / 2)]; proj.rotate([-(hl === 7 ? 180 : c[0]), hl >= 5 ? -20 : -c[1] * 0.7]); draw(); $('#s-coord').scrollIntoView({ behavior: 'smooth' }); });
+  },
+  showCoord([lon, lat]) {
+    const dms = (v, p, n) => { const a = Math.abs(v), d = Math.floor(a), m = Math.floor((a - d) * 60), s = ((a - d) * 60 - m) * 60; return `${d}° ${m}′ ${s.toFixed(0)}″ ${v >= 0 ? p : n}`; };
+    const h = lon / 15; const sign = h >= 0 ? '+' : '−';
+    $('#coordOut').innerHTML = `<div class="eyebrow">Punto seleccionado</div><div class="kv" style="font-size:16px">${dms(lat, 'N', 'S')}, ${dms(lon, 'E', 'O')}</div><div class="kv muted">${lat.toFixed(4)}, ${lon.toFixed(4)}</div><div class="small">Latitud ${Math.abs(lat).toFixed(1)}° ${lat >= 0 ? 'norte' : 'sur'} · longitud ${Math.abs(lon).toFixed(1)}° ${lon >= 0 ? 'este' : 'oeste'}. Hora solar: UTC ${sign}${Math.abs(h).toFixed(1).replace('.', ',')} h (huso teórico ${sign}${Math.round(Math.abs(h))}).</div>`;
+  },
+  initDms() { const i = $('#decIn'), o = $('#dmsOut'); const f = () => { const v = parseFloat(String(i.value).replace(',', '.')); if (isNaN(v)) { o.textContent = '—'; return; } const a = Math.abs(v), d = Math.floor(a), m = Math.floor((a - d) * 60), s = ((a - d) * 60 - m) * 60; o.textContent = `${v < 0 ? '−' : ''}${d}° ${m}′ ${s.toFixed(1).replace('.', ',')}″`; }; i.oninput = f; f(); },
+  /* ----- husos horarios ----- */
+  async initTZ() {
+    let t; try { t = await fetch('data/tz.json').then(r => r.json()); } catch (e) { $('#tzInfo').textContent = 'No se pudo cargar el mapa de husos.'; return; }
+    const zones = topojson.feature(t, t.objects.tz).features;
+    const borders = topojson.mesh(D.sphere, D.sphere.objects.countries, (a, b) => a !== b);
+    const svg = d3.select('#tzMap'), W = 900, H = 480;
+    const pal = ['var(--p1)', 'var(--p6)', 'var(--p3)', 'var(--p2)', 'var(--p4)', 'var(--p5)'];
+    const col = z => z !== Math.floor(z) ? 'var(--accent-soft)' : pal[((Math.floor(z) % 6) + 6) % 6];
+    const fmtZ = z => { const s = z >= 0 ? '+' : '−', a = Math.abs(z), h = Math.floor(a), m = Math.round((a - h) * 60); return 'UTC' + (z === 0 ? '±0' : s + h + (m ? ':' + String(m).padStart(2, '0') : '')); };
+    let mode = 'map', rot = [-10, -20], proj, path, sel = null;
+    const gS = svg.append('path'), gZ = svg.append('g'), gLand = svg.append('path'), gB = svg.append('path'), gM = svg.append('g'), gL = svg.append('g'), gH = svg.append('g');
+    const info = d => {
+      if (!d) return;
+      const p = d.properties, now = new Date(), loc = new Date(now.getTime() + p.z * 3600000);
+      const hh = String(loc.getUTCHours()).padStart(2, '0') + ':' + String(loc.getUTCMinutes()).padStart(2, '0');
+      const day = loc.getUTCDate() !== now.getUTCDate() ? (loc > now ? ' (ya es mañana)' : ' (todavía es ayer)') : '';
+      const cs = (p.c || []).filter(c => D.info[c[0]] && c[0] !== 'ATA').map(c => esc(nameOf(c[0])) + (c[1] ? ' <span class="muted">(parte)</span>' : ''));
+      const same = zones.filter(z => z.properties.z === p.z).length;
+      $('#tzInfo').innerHTML = `<div class="row" style="gap:14px"><b class="kv" style="font-size:18px">${fmtZ(p.z)}</b><span>Ahora allí: <b class="kv">${hh}</b>${day}</span></div>
+        <div style="margin-top:6px">${cs.length ? cs.join(', ') : 'Solo océano o regiones deshabitadas'}</div>
+        ${/[a-záéíóú]/.test(p.p) && /\(/.test(p.p) && /Rusia|Kazaj|Turqu|Venez|Sud|Marrue|México/.test(p.p) ? `<div class="small muted" style="margin-top:4px">${esc(p.p)}</div>` : ''}
+        ${p.z !== Math.round(p.z) ? '<div class="small muted" style="margin-top:4px">Huso con media hora o tres cuartos: algunos países ajustan su hora a su longitud real.</div>' : ''}`;
+    };
+    const setProj = () => {
+      if (mode === 'map') proj = d3.geoEqualEarth().fitExtent([[6, 26], [W - 6, H - 6]], { type: 'Sphere' });
+      else proj = d3.geoOrthographic().rotate(rot).clipAngle(90).fitExtent([[W / 2 - 228, 6], [W / 2 + 228, H - 6]], { type: 'Sphere' });
+      path = d3.geoPath(proj);
+    };
+    const draw = () => {
+      setProj();
+      gS.attr('d', path({ type: 'Sphere' })).attr('fill', 'var(--ocean)').attr('stroke', 'var(--muted)').attr('stroke-width', .8);
+      gZ.selectAll('path').data(zones).join('path').attr('d', path).attr('fill', d => col(d.properties.z)).attr('stroke', 'var(--panel)').attr('stroke-width', .5).style('cursor', 'pointer')
+        .on('pointerenter', (ev, d) => { sel = d; info(d); hl(); }).on('click', (ev, d) => { sel = d; info(d); hl(); });
+      gLand.attr('d', path(this._land)).attr('fill', 'var(--ink)').attr('fill-opacity', .12).attr('stroke', 'var(--ink)').attr('stroke-opacity', .45).attr('stroke-width', .6).style('pointer-events', 'none');
+      gB.attr('d', path(borders)).attr('fill', 'none').attr('stroke', 'var(--ink)').attr('stroke-opacity', .35).attr('stroke-width', .5).style('pointer-events', 'none');
+      gM.selectAll('*').remove(); gL.selectAll('*').remove();
+      if ($('#tzTheo').checked) {
+        for (let k = -12; k <= 12; k++) { const lon = k * 15 + 7.5; if (lon > 180) continue; gM.append('path').attr('d', path({ type: 'LineString', coordinates: d3.range(-90, 90.1, 3).map(y => [lon, y]) })).attr('fill', 'none').attr('stroke', 'var(--ink)').attr('stroke-opacity', .5).attr('stroke-dasharray', '3 3').attr('stroke-width', .8).style('pointer-events', 'none'); }
+        if (mode === 'map') for (let k = -12; k <= 12; k++) { const p = proj([Math.max(-179, Math.min(179, k * 15)), 0]); gL.append('text').attr('class', 'svgmut').attr('x', p[0]).attr('y', 16).attr('font-size', 10.5).attr('text-anchor', 'middle').attr('font-family', 'IBM Plex Mono,monospace').text((k > 0 ? '+' : k < 0 ? '−' : '±') + Math.abs(k)); }
+      }
+      hl();
+    };
+    const hl = () => { gH.selectAll('*').remove(); if (sel) gH.append('path').attr('d', path(sel)).attr('fill', 'none').attr('stroke', 'var(--sel)').attr('stroke-width', 2.2).style('pointer-events', 'none'); };
+    let r0, p0;
+    svg.call(d3.drag().filter(() => mode === 'globe').on('start', ev => { r0 = rot.slice(); p0 = [ev.x, ev.y]; }).on('drag', ev => { rot = [r0[0] + (ev.x - p0[0]) * 0.35, Math.max(-80, Math.min(80, r0[1] - (ev.y - p0[1]) * 0.35))]; draw(); }));
+    $$('#tzMode button').forEach(b => b.onclick = () => { mode = b.dataset.m; $$('#tzMode button').forEach(x => x.setAttribute('aria-pressed', x === b)); svg.style('cursor', mode === 'globe' ? 'grab' : null); draw(); });
+    $('#tzTheo').onchange = draw;
+    draw();
+    // zona de España peninsular por defecto
+    sel = zones.find(z => z.properties.z === 1 && (z.properties.c || []).some(c => c[0] === 'ESP')) || null; info(sel); hl();
+    this.tzTimer = setInterval(() => { if (sel && APP.tab === 'cartografia') info(sel); }, 30000);
+  },
+  /* ----- ortodromia ----- */
+  initGC() {
+    const A = $('#gcA'), B = $('#gcB'); const opts = CAR_CITIES.map((c, i) => `<option value="${i}">${c[0]}</option>`).join(''); A.innerHTML = opts; B.innerHTML = opts; A.value = 0; B.value = 2;
+    const svg = d3.select('#gcMap'), proj = d3.geoMercator().fitExtent([[6, 6], [554, 394]], d3.geoGraticule().extentMajor([[-180, -75], [180, 82]]).outline()), path = d3.geoPath(proj);
+    svg.append('path').attr('d', path(d3.geoGraticule().extentMajor([[-180, -75], [180, 82]]).outline())).attr('fill', 'var(--ocean)');
+    svg.append('path').attr('d', path(d3.geoGraticule().extentMajor([[-180, -75], [180, 82]]).step([30, 15])())).attr('fill', 'none').attr('stroke', 'var(--grat)').attr('stroke-width', .6);
+    svg.append('path').attr('d', path(this._land)).attr('fill', 'var(--p2)').attr('stroke', 'var(--muted)').attr('stroke-width', .3);
+    const g = svg.append('g');
+    const draw = () => {
+      const a = CAR_CITIES[+A.value], b = CAR_CITIES[+B.value]; const pa = [a[1], a[2]], pb = [b[1], b[2]];
+      g.selectAll('*').remove();
+      const gc = { type: 'LineString', coordinates: d3.range(0, 1.0001, 0.01).map(d3.geoInterpolate(pa, pb)) };
+      // loxodromia: recta en Mercator (por el lado corto en longitud)
+      let dl = pb[0] - pa[0]; if (dl > 180) dl -= 360; if (dl < -180) dl += 360;
+      const lox = { type: 'LineString', coordinates: d3.range(0, 1.0001, 0.01).map(t => { const y0 = Math.log(Math.tan(Math.PI / 4 + pa[1] * Math.PI / 360)), y1 = Math.log(Math.tan(Math.PI / 4 + pb[1] * Math.PI / 360)); const y = y0 + (y1 - y0) * t; let lon = pa[0] + dl * t; if (lon > 180) lon -= 360; if (lon < -180) lon += 360; return [lon, (2 * Math.atan(Math.exp(y)) - Math.PI / 2) * 180 / Math.PI]; }) };
+      g.append('path').attr('d', path(lox)).attr('fill', 'none').attr('stroke', 'var(--dispute-orange)').attr('stroke-width', 2.2).attr('stroke-dasharray', '5 4');
+      g.append('path').attr('d', path(gc)).attr('fill', 'none').attr('stroke', 'var(--sel)').attr('stroke-width', 2.8);
+      [a, b].forEach(c => { const p = proj([c[1], c[2]]); g.append('circle').attr('cx', p[0]).attr('cy', p[1]).attr('r', 4.5).attr('fill', 'var(--ink)'); g.append('text').attr('x', p[0] + 7).attr('y', p[1] - 6).attr('class', 'svgtxt').attr('font-size', 13).attr('font-weight', 700).attr('paint-order', 'stroke').attr('stroke', 'var(--panel)').attr('stroke-width', 3).text(c[0]); });
+      const R = 6371; const dGC = d3.geoDistance(pa, pb) * R;
+      const p1 = pa[1] * Math.PI / 180, p2 = pb[1] * Math.PI / 180, dphi = p2 - p1, dpsi = Math.log(Math.tan(Math.PI / 4 + p2 / 2) / Math.tan(Math.PI / 4 + p1 / 2)); const qq = Math.abs(dpsi) > 1e-12 ? dphi / dpsi : Math.cos(p1); const dLox = Math.sqrt(dphi * dphi + qq * qq * (dl * Math.PI / 180) ** 2) * R;
+      $('#gcOut').innerHTML = `Ortodromia: <b class="kv">${nf.format(Math.round(dGC))} km</b> · loxodromia: <b class="kv">${nf.format(Math.round(dLox))} km</b>${dLox > dGC + 5 ? ` · ahorro: <b>${nf.format(Math.round(dLox - dGC))} km</b> (${Math.round((dLox - dGC) / dLox * 100)} %)` : ''}`;
+    };
+    A.onchange = B.onchange = draw; draw();
+  },
+  /* ----- piel de naranja ----- */
+  initPeel() {
+    const svg = d3.select('#peel'); const land = this._land;
+    const draw = n => {
+      svg.selectAll('*').remove();
+      let proj;
+      if (n === 1) proj = d3.geoSinusoidal();
+      else { const w = 360 / n; const lobes = [[], []]; for (let i = 0; i < n; i++) { const a = -180 + i * w, b = a + w / 2, c = a + w; lobes[0].push([[a, 0], [b, 90], [c, 0]]); lobes[1].push([[a, 0], [b, -90], [c, 0]]); } proj = d3.geoInterrupt(d3.geoSinusoidalRaw, lobes); }
+      proj.fitExtent([[8, 8], [892, 432]], { type: 'Sphere' }); const path = d3.geoPath(proj);
+      svg.append('path').attr('d', path({ type: 'Sphere' })).attr('fill', '#f3a03a').attr('stroke', '#c06a12').attr('stroke-width', 1.2);
+      svg.append('path').attr('d', path(d3.geoGraticule().step([15, 15])())).attr('fill', 'none').attr('stroke', 'rgba(255,255,255,.35)').attr('stroke-width', .6);
+      svg.append('path').attr('d', path(land)).attr('fill', '#fde3b8').attr('stroke', '#b0601a').attr('stroke-width', .4);
+    };
+    draw(12);
+    $$('#peelSeg button').forEach(b => b.onclick = () => { $$('#peelSeg button').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(+b.dataset.g); });
+  },
+  /* ----- explorador ----- */
+  initExplorer() {
+    const cv = $('#projCv'), ctx = cv.getContext('2d'); const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = 720, H = 440; cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
+    const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#888';
+    let cur = PROJS.find(p => p.id === 'mercator'); let proj = makeProj(cur); let rot = [0, 0];
+    const tissot = () => { const out = []; for (let y = -60; y <= 60; y += 30) for (let x = -150; x <= 180; x += 30) out.push(d3.geoCircle().center([x, y]).radius(4.5)()); for (const y of [-75, 75]) for (let x = -150; x <= 180; x += 60) out.push(d3.geoCircle().center([x, y]).radius(4.5)()); return { type: 'GeometryCollection', geometries: out }; };
+    const TIS = tissot();
+    const cells = []; for (let y = -80; y < 80; y += 5) for (let x = -180; x < 180; x += 5) cells.push({ type: 'Polygon', coordinates: [[[x, y], [x, y + 5], [x + 5, y + 5], [x + 5, y], [x, y]]] });
+    const draw = (p, def) => {
+      const path = d3.geoPath(p, ctx); ctx.clearRect(0, 0, W, H);
+      const tg = def ? targetOf(def, p) : { type: 'Sphere' };
+      ctx.beginPath(); path(tg); ctx.fillStyle = css('--ocean'); ctx.fill();
+      ctx.save(); ctx.beginPath(); path(tg); ctx.clip();
+      if ($('#heat').checked && def) {
+        const areas = cells.map(c => { const pa = path.area(c), sa = d3.geoArea(c); return pa > 0 && isFinite(pa) ? pa / sa : null; });
+        const v = areas.filter(x => x).sort((a, b) => a - b); const ref = v[Math.floor(v.length * 0.25)] || 1;
+        const sc = d3.scaleSequential(d3.interpolateYlOrRd).domain([0, 3]);
+        cells.forEach((c, i) => { if (!areas[i]) return; const r = Math.log2(areas[i] / ref); ctx.beginPath(); path(c); ctx.fillStyle = r < 0.1 ? 'rgba(255,255,255,0)' : sc(Math.min(3, r)); ctx.globalAlpha = .7; ctx.fill(); ctx.globalAlpha = 1; });
+      }
+      ctx.beginPath(); path(def ? gratOf(def, p, [15, 15])() : d3.geoGraticule().step([15, 15])()); ctx.strokeStyle = css('--grat'); ctx.lineWidth = .6; ctx.stroke();
+      ctx.beginPath(); path(this._land); ctx.fillStyle = css('--p2'); ctx.globalAlpha = $('#heat').checked ? .55 : 1; ctx.fill(); ctx.globalAlpha = 1; ctx.strokeStyle = css('--muted'); ctx.lineWidth = .4; ctx.stroke();
+      if ($('#tissot').checked) { ctx.beginPath(); path(TIS); ctx.fillStyle = 'rgba(208,38,27,.45)'; ctx.fill(); ctx.strokeStyle = 'rgba(160,20,10,.9)'; ctx.lineWidth = .8; ctx.stroke(); }
+      ctx.restore();
+      ctx.beginPath(); path(tg); ctx.strokeStyle = css('--muted'); ctx.lineWidth = 1; ctx.stroke();
+    };
+    const fitP = (p, def) => { p.fitExtent([[10, 10], [W - 10, H - 10]], targetOf(def, p)); };
+    const azDef = def => def.id === 'ortho' ? 30 : 90;
+    const setup = def => { const p = makeProj(def); if (def.surf === 'azimutal') p.rotate([-rot[0], -rot[1]]); else if (def.surf === 'conica') p.rotate([(def.rot || 0) - rot[0], 0]); else p.rotate([-rot[0], 0]); fitP(p, def); return p; };
+    const info = def => { $('#projInfo').innerHTML = `<h3>${def.n}</h3><dl class="projinfo" style="margin-top:8px"><dt>Tipo</dt><dd>${SURFN[def.surf]}</dd><dt>Propiedad</dt><dd>${PROPN[def.prop]}</dd><dt>Conserva</dt><dd>${def.keeps}</dd><dt>Deforma</dt><dd>${def.dist}</dd><dt>Se usa en</dt><dd>${def.use}</dd><dt>Autor</dt><dd>${def.au} (${def.yr})</dd></dl>`; };
+    const render = () => { proj = setup(cur); draw(proj, cur); };
+    const go = id => {
+      const next = PROJS.find(p => p.id === id); const from = cur; info(next); $('#heatLeg').hidden = !$('#heat').checked;
+      const rp = $('#rotP'); if (next.surf === 'azimutal') { if (from.surf !== 'azimutal') { rot[1] = azDef(next); } rp.disabled = false; } else { rot[1] = 0; rp.disabled = true; } rp.value = rot[1];
+      if (this.raf) cancelAnimationFrame(this.raf);
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce || from.anim === false || next.anim === false || !from.raw || !next.raw || from.surf === 'azimutal' || next.surf === 'azimutal') { cur = next; render(); return; }
+      const t0 = performance.now(), dur = 900; const r0 = from.raw, r1 = next.raw;
+      const step = ts => {
+        let t = Math.min(1, (ts - t0) / dur); t = d3.easeCubicInOut(t);
+        const raw = (l, p) => { const a = r0(l, p), b = r1(l, p); return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; };
+        const p = d3.geoProjection(raw).rotate([-rot[0] + ((from.rot || 0) * (1 - t) + (next.rot || 0) * t), 0]);
+        const lim = Math.min(from.lim || 90, next.lim || 90);
+        p.fitExtent([[10, 10], [W - 10, H - 10]], d3.geoGraticule().extentMajor([[-180, -lim + .01], [180, lim - .01]]).outline());
+        draw(p, null);
+        if (t < 1) this.raf = requestAnimationFrame(step); else { cur = next; render(); }
+      };
+      this.raf = requestAnimationFrame(step);
+    };
+    $('#projSel').onchange = e => go(e.target.value);
+    $('#tissot').onchange = render; $('#heat').onchange = () => { $('#heatLeg').hidden = !$('#heat').checked; render(); };
+    $('#heatLeg').innerHTML = 'Mapa de calor: amarillo = área ampliada ×2, rojo = ×8 o más (respecto a la zona menos deformada). En una proyección equivalente no aparece color.';
+    $('#rotL').oninput = e => { rot[0] = +e.target.value; render(); };
+    $('#rotP').oninput = e => { rot[1] = +e.target.value; render(); };
+    info(cur); $('#rotP').disabled = true; render();
+    this.explorerRedraw = render;
+  },
+  /* ----- tamaño real ----- */
+  initTrueSize() {
+    const svg = d3.select('#tsMap'), W = 600, H = 520;
+    const proj = d3.geoMercator().fitExtent([[4, 4], [W - 4, H - 4]], d3.geoGraticule().extentMajor([[-180, -70], [180, 82]]).outline()); const path = d3.geoPath(proj);
+    svg.append('rect').attr('width', W).attr('height', H).attr('fill', 'var(--ocean)');
+    svg.append('path').attr('d', path(d3.geoGraticule().step([30, 15])())).attr('fill', 'none').attr('stroke', 'var(--grat)').attr('stroke-width', .6);
+    const n3reg = {}; for (const e of Object.values(D.info)) if (e.n3) n3reg[e.n3] = e;
+    const cty = this._cty.features;
+    svg.append('g').selectAll('path').data(cty).join('path').attr('d', path).attr('fill', d => (n3reg[d.id] && n3reg[d.id].reg === 'África') ? 'var(--muted)' : 'var(--p2)').attr('stroke', 'var(--panel)').attr('stroke-width', .3);
+    const ghost = svg.append('path').attr('fill', 'none').attr('stroke', 'var(--sel)').attr('stroke-dasharray', '4 3').attr('stroke-width', 1.2);
+    const mv = svg.append('path').attr('fill', 'var(--sel)').attr('fill-opacity', .55).attr('stroke', 'var(--sel)').attr('stroke-width', 1.5).style('cursor', 'move');
+    const choices = [['304', 'Groenlandia'], ['643', 'Rusia'], ['124', 'Canadá'], ['840', 'Estados Unidos'], ['036', 'Australia'], ['076', 'Brasil'], ['356', 'India'], ['156', 'China'], ['724', 'España'], ['010', 'Antártida']];
+    $('#tsPick').innerHTML = choices.map(([id, n]) => `<button class="chip" data-ts="${id}">${n}</button>`).join('');
+    let feat, c0, pos;
+    const moved = () => { const r1 = d3.geoRotation([-c0[0], -c0[1]]), r2 = d3.geoRotation([-pos[0], -pos[1]]).invert; const tr = c => { const p = r2(r1(c)); return p; }; const mapC = g => ({ type: g.type, coordinates: g.type === 'Polygon' ? g.coordinates.map(r => r.map(tr)) : g.coordinates.map(p => p.map(r => r.map(tr))) }); return { type: 'Feature', geometry: mapC(feat.geometry) }; };
+    const draw = () => {
+      if (!feat) return; const m = moved(); mv.attr('d', path(m)); ghost.attr('d', path(feat));
+      const realA = d3.geoArea(feat) * 6371 * 6371; const appA = path.area(m), appO = path.area(feat);
+      const name = choices.find(c => c[0] === feat.id)[1];
+      const afr = 30.37e6;
+      $('#tsOut').innerHTML = `<h3>${name}</h3><p class="small" style="margin-top:6px">Superficie real: <b class="kv">${nf.format(Math.round(realA / 1000) * 1000)} km²</b> (${(realA / afr * 100).toFixed(1).replace('.', ',')} % de África).</p><p class="small">En su posición real, Mercator la dibuja <b>${(appO / appA).toFixed(1).replace('.', ',')} veces</b> más grande que en la posición actual (latitud ${pos[1].toFixed(0)}°).</p><p class="small muted">El factor de ampliación de áreas de Mercator es 1/cos²(latitud): ×1 en el ecuador, ×4 a 60°, ×33 a 80°.</p>`;
+    };
+    const pick = id => { $$('[data-ts]').forEach(b => b.setAttribute('aria-pressed', b.dataset.ts === id)); feat = cty.find(f => f.id === id); c0 = d3.geoCentroid(feat); if (id === '010') c0 = [0, -80]; pos = id === '304' ? [20, 5] : c0.slice(); if (id === '304') { pos = c0.slice(); } draw(); };
+    $$('[data-ts]').forEach(b => b.onclick = () => pick(b.dataset.ts));
+    $('#tsReset').onclick = () => { pos = c0.slice(); draw(); };
+    mv.call(d3.drag().on('drag', ev => { const ll = proj.invert([ev.x, ev.y]); if (ll) { pos = [ll[0], Math.max(-75, Math.min(80, ll[1]))]; draw(); } }));
+    pick('304');
+  },
+  select() { }
+};
+function tiltSvg() {
+  const cx = 250, cy = 200, R = 120, tilt = -23.44 * Math.PI / 180;
+  const lat = (deg, cls, label, col) => { const y = -R * Math.sin(deg * Math.PI / 180), hw = R * Math.cos(deg * Math.PI / 180); const ry = cy + hw * Math.sin(tilt) + y * Math.cos(tilt), rx = cx + hw * Math.cos(tilt) - y * Math.sin(tilt); return `<g transform="rotate(-23.44 ${cx} ${cy})"><line x1="${cx - hw}" y1="${cy + y}" x2="${cx + hw}" y2="${cy + y}" stroke="${col}" stroke-width="2"/></g><line x1="${rx}" y1="${ry}" x2="${cx + R + 30}" y2="${ry}" stroke="${col}" stroke-width=".8" stroke-dasharray="2 2"/><text class="svgtxt" font-size="12.5" x="${cx + R + 34}" y="${ry + 4}" style="fill:${col}">${label}</text>`; };
+  let rays = ''; for (let i = -5; i <= 5; i++) rays += `<line x1="0" y1="${cy + i * 26}" x2="${cx - Math.sqrt(Math.max(0, R * R - (i * 26) ** 2)) - 4}" y2="${cy + i * 26}" stroke="#e8b400" stroke-width="1.2" marker-end="url(#arr)"/>`;
+  return `<svg viewBox="0 0 600 400" role="img" aria-label="Inclinación del eje terrestre en el solsticio de junio"><defs><marker id="arr" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L6 3L0 6z" fill="#e8b400"/></marker></defs>
+  <text class="svgmut" x="6" y="20" font-size="12.5">Rayos del Sol</text>${rays}
+  <circle cx="${cx}" cy="${cy}" r="${R}" fill="var(--ocean)" stroke="var(--muted)" stroke-width="1.5"/>
+  <path d="M${cx} ${cy - R} A${R} ${R} 0 0 1 ${cx} ${cy + R} Z" fill="rgba(10,20,40,.22)"/>
+  <g transform="rotate(-23.44 ${cx} ${cy})"><line x1="${cx}" y1="${cy - R - 40}" x2="${cx}" y2="${cy + R + 40}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="6 4"/><text class="svgtxt" x="${cx + 6}" y="${cy - R - 28}" font-size="12.5">Eje</text></g>
+  <line x1="${cx}" y1="${cy - R - 40}" x2="${cx}" y2="${cy + R + 40}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 3"/>
+  <text class="svgtxt" x="${cx - 112}" y="${cy - R - 14}" font-size="13" font-weight="700">23,44°</text>
+  ${lat(66.56, '', 'Círculo polar ártico 66° 34′ N', 'var(--change)')}${lat(23.44, '', 'Trópico de Cáncer 23° 26′ N', 'var(--dispute-orange)')}${lat(0, '', 'Ecuador 0°', 'var(--dispute-red)')}${lat(-23.44, '', 'Trópico de Capricornio', 'var(--dispute-orange)')}${lat(-66.56, '', 'Círculo polar antártico', 'var(--change)')}
+  <text class="svgmut" x="${cx + 12}" y="${cy + R + 34}" font-size="12">Mitad en sombra: noche</text></svg>`;
+}
+function tzSvg() {
+  let s = `<svg viewBox="0 0 960 120" style="min-width:720px" role="img" aria-label="Husos horarios teóricos">`;
+  for (let i = 0; i < 24; i++) { const off = i - 12 + 0; const x = 20 + i * 38.3; s += `<rect x="${x}" y="22" width="38.3" height="56" fill="${i % 2 ? 'var(--p6)' : 'var(--p1)'}" stroke="var(--panel)"/><text class="svgtxt" x="${x + 19}" y="54" font-size="12" text-anchor="middle" font-family="IBM Plex Mono,monospace">${off > 0 ? '+' : off < 0 ? '−' : '±'}${Math.abs(off)}</text>`; }
+  for (let lon = -180; lon <= 180; lon += 45) { const x = 20 + (lon + 187.5) / 15 * 38.3; s += `<text class="svgmut" x="${x}" y="96" font-size="11" text-anchor="middle">${Math.abs(lon)}°${lon > 0 ? 'E' : lon < 0 ? 'O' : ''}</text><line x1="${x}" y1="78" x2="${x}" y2="84" stroke="var(--muted)"/>`; }
+  s += `<text class="svgtxt" x="${20 + 12.5 * 38.3}" y="14" font-size="12" text-anchor="middle" font-weight="700">UTC (Greenwich)</text><text class="svgmut" x="20" y="114" font-size="11">Cada franja = 15° = 1 hora. Hacia el este, se suma una hora por huso.</text></svg>`;
+  return s;
+}
+function surfFigs() {
+  const globe = (cx, cy, r) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--ocean)" stroke="var(--muted)"/><ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${r * 0.28}" fill="none" stroke="var(--grat)"/><ellipse cx="${cx}" cy="${cy - r * 0.55}" rx="${r * 0.83}" ry="${r * 0.22}" fill="none" stroke="var(--grat)"/><ellipse cx="${cx}" cy="${cy + r * 0.55}" rx="${r * 0.83}" ry="${r * 0.22}" fill="none" stroke="var(--grat)"/><path d="M${cx} ${cy - r} C ${cx + r * 0.55} ${cy - r * 0.6}, ${cx + r * 0.55} ${cy + r * 0.6}, ${cx} ${cy + r}" fill="none" stroke="var(--grat)"/>`;
+  const arrow = (x1, x2, y) => `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ar2)"/><text class="svgmut" x="${(x1 + x2) / 2}" y="${y - 8}" font-size="11" text-anchor="middle">se desenrolla</text>`;
+  const defs = `<defs><marker id="ar2" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L6 3L0 6z" fill="var(--muted)"/></marker></defs>`;
+  const S = 'fill="rgba(22,64,163,.12)" stroke="var(--sel)" stroke-width="1.6"';
+  let grid = ''; for (let i = 0; i <= 6; i++) grid += `<line x1="${215 + i * 18}" y1="40" x2="${215 + i * 18}" y2="150" stroke="var(--sel)" stroke-width=".7"/>`; for (let j = 0; j <= 5; j++) grid += `<line x1="215" y1="${40 + j * 22}" x2="323" y2="${40 + j * 22}" stroke="var(--sel)" stroke-width=".7"/>`;
+  let fan = ''; for (let i = 0; i <= 6; i++) { const a = (-60 + i * 20) * Math.PI / 180; fan += `<line x1="270" y1="30" x2="${270 + 120 * Math.sin(a)}" y2="${30 + 120 * Math.cos(a)}" stroke="var(--sel)" stroke-width=".7"/>`; } for (const r of [60, 90, 120]) fan += `<path d="M${270 + r * Math.sin(-60 * Math.PI / 180)} ${30 + r * Math.cos(60 * Math.PI / 180)} A${r} ${r} 0 0 0 ${270 + r * Math.sin(60 * Math.PI / 180)} ${30 + r * Math.cos(60 * Math.PI / 180)}" fill="none" stroke="var(--sel)" stroke-width=".7"/>`;
+  let disc = ''; for (const r of [20, 40, 60]) disc += `<circle cx="275" cy="95" r="${r}" fill="none" stroke="var(--sel)" stroke-width=".7"/>`; for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; disc += `<line x1="275" y1="95" x2="${275 + 60 * Math.cos(a)}" y2="${95 + 60 * Math.sin(a)}" stroke="var(--sel)" stroke-width=".7"/>`; }
+  const fig = (title, body, txt) => `<div class="figure"><svg viewBox="0 0 340 190" role="img" aria-label="${title}">${defs}${body}</svg><div><h3>${title}</h3><p class="small" style="margin-top:4px">${txt}</p></div></div>`;
+  return fig('Cilíndrica', `${globe(80, 95, 55)}<rect x="25" y="25" width="110" height="140" ${S}/><ellipse cx="80" cy="25" rx="55" ry="12" ${S}/><ellipse cx="80" cy="165" rx="55" ry="12" fill="none" stroke="var(--sel)" stroke-width="1.6"/>${arrow(145, 205, 95)}<rect x="215" y="40" width="108" height="110" fill="rgba(22,64,163,.12)"/>${grid}`, 'Un cilindro envuelve el globo tocándolo en el ecuador. Meridianos y paralelos salen como rectas que se cortan en ángulo recto. Ejemplos: Mercator, Gall-Peters.')
+    + fig('Cónica', `${globe(80, 115, 50)}<path d="M80 18 L22 128 A58 14 0 0 0 138 128 Z" ${S}/><ellipse cx="80" cy="96" rx="44" ry="11" fill="none" stroke="var(--dispute-red)" stroke-width="2"/>${arrow(150, 205, 95)}<path d="M270 30 L${270 + 120 * Math.sin(-60 * Math.PI / 180)} ${30 + 120 * Math.cos(60 * Math.PI / 180)} A120 120 0 0 0 ${270 + 120 * Math.sin(60 * Math.PI / 180)} ${30 + 120 * Math.cos(60 * Math.PI / 180)} Z" fill="rgba(22,64,163,.12)"/>${fan}`, 'Un cono se apoya sobre uno o dos paralelos (en rojo), donde no hay deformación. Ideal para países de latitudes medias. Ejemplos: Lambert, Albers.')
+    + fig('Azimutal o plana', `${globe(80, 110, 55)}<path d="M20 52 L140 52 L120 70 L0 70 Z" ${S}/><circle cx="80" cy="56" r="3" fill="var(--dispute-red)"/>${arrow(150, 205, 95)}<circle cx="275" cy="95" r="60" fill="rgba(22,64,163,.12)"/>${disc}`, 'Un plano toca el globo en un punto (a menudo un polo). Los meridianos salen como radios y los paralelos como círculos. Ejemplos: estereográfica, gnomónica, azimutal equidistante.');
+}
+APP.tabs.cartografia = CARTO;
+
+/* ============ EXAMEN ============ */
+const POL_TYPES = [
+  { m: 'cap', n: 'País → capital', d: 'Te digo el país, dices la capital' },
+  { m: 'capc', n: 'Capital → país', d: 'Te digo la capital, dices el país' },
+  { m: 'mapn', n: 'Mapa → nombre', d: 'Resalto un país en el mapa' },
+  { m: 'mapc', n: 'Nombre → mapa', d: 'Haz clic sobre el país' },
+  { m: 'flag', n: 'Bandera → país', d: 'Reconoce la bandera' },
+  { m: 'flagc', n: 'País → bandera', d: 'Elige su bandera' }];
+const PHY_TYPES = [
+  { m: 'pn', n: 'Señalado → nombre', d: 'Resalto un accidente en el mapa' },
+  { m: 'pl', n: 'Nombre → señalar', d: 'Haz clic donde está' },
+  { m: 'ps', n: '¿Qué mar lo baña?', d: 'Mares y océanos de cada país' }];
+const PHY_GROUPS = [
+  { k: 'seas', n: 'Océanos y mares', c: ['océano', 'mar'] },
+  { k: 'gulfs', n: 'Golfos, bahías y estrechos', c: ['golfo', 'bahía', 'estrecho', 'canal', 'fiordo', 'laguna', 'arrecife'] },
+  { k: 'ranges', n: 'Cordilleras y sierras', c: ['cordillera'] },
+  { k: 'peaks', n: 'Picos y volcanes', c: ['pico', 'volcán'] },
+  { k: 'rivers', n: 'Ríos', c: ['río'] },
+  { k: 'lakes', n: 'Lagos', c: ['lago', 'embalse'] },
+  { k: 'penins', n: 'Penínsulas e istmos', c: ['península', 'istmo', 'delta'] },
+  { k: 'islands', n: 'Islas y archipiélagos', c: ['isla', 'archipiélago'] },
+  { k: 'relief', n: 'Desiertos, mesetas y llanuras', c: ['desierto', 'meseta', 'llanura', 'cuenca', 'tundra', 'valle', 'humedal', 'depresión'] }];
+const CAR_TYPES = [
+  { m: 'cl', n: 'Paralelos y meridianos' }, { m: 'cp', n: '¿Qué proyección es?' }, { m: 'cq', n: '¿Qué conserva?' }, { m: 'cs', n: 'Tipo de superficie' }, { m: 'cc', n: 'Coordenadas' }];
+const DIFF = [{ k: 1, n: 'Básico', r: 2 }, { k: 2, n: 'Medio', r: 4 }, { k: 3, n: 'Experto', r: 99 }];
+const CAR_LINES = [
+  { id: 'ecuador', n: 'Ecuador', lat: 0 }, { id: 'cancer', n: 'Trópico de Cáncer', lat: 23.44 }, { id: 'capricornio', n: 'Trópico de Capricornio', lat: -23.44 },
+  { id: 'artico', n: 'Círculo polar ártico', lat: 66.56 }, { id: 'antartico', n: 'Círculo polar antártico', lat: -66.56 },
+  { id: 'greenwich', n: 'Meridiano de Greenwich', lon: 0 }, { id: 'antimeridiano', n: 'Antimeridiano (180°)', lon: 180 }];
+const CAR_CITIES = [['Madrid', -3.70, 40.42], ['Buenos Aires', -58.38, -34.60], ['Tokio', 139.69, 35.69], ['Nairobi', 36.82, -1.29], ['Sídney', 151.21, -33.87], ['Nueva York', -74.01, 40.71], ['El Cairo', 31.24, 30.04], ['Moscú', 37.62, 55.76], ['Ciudad de México', -99.13, 19.43], ['Lima', -77.04, -12.05], ['Bombay', 72.88, 19.08], ['Reikiavik', -21.94, 64.15], ['Ciudad del Cabo', 18.42, -33.92], ['Singapur', 103.82, 1.35], ['Anchorage', -149.90, 61.22], ['Quito', -78.47, -0.18], ['Pekín', 116.40, 39.90], ['Londres', -0.13, 51.51], ['Honolulu', -157.86, 21.31], ['Ushuaia', -68.30, -54.80]];
+const PROPN = { conforme: 'Conforme (ángulos y formas locales)', equivalente: 'Equivalente (áreas)', equidistante: 'Equidistante (distancias desde un punto o línea)', afilactica: 'Afiláctica o de compromiso (ninguna exacta)' };
+const SURFN = { cilindrica: 'Cilíndrica', pseudocilindrica: 'Pseudocilíndrica', conica: 'Cónica', azimutal: 'Azimutal (plana)', otra: 'Interrumpida u otra' };
+
+const QUIZ = {
+  cat: 'pol', q: null, sc: { n: 0, ok: 0, streak: 0, best: 0 }, recent: [],
+  st: null,
+  defaults() {
+    return {
+      pol: { types: ['cap', 'capc', 'mapn', 'mapc', 'flag', 'flagc'], regs: [], mode: 'mc', limited: true, review: false },
+      phy: { types: ['pn', 'pl', 'ps'], groups: PHY_GROUPS.map(g => g.k), diff: 1, regs: [], mode: 'mc', review: false },
+      car: { types: CAR_TYPES.map(t => t.m), review: false, regs: [], mode: 'mc' }
+    };
+  },
+  conf() { if (!this.st) { const s = STORE.d.set.quiz || {}; const d = this.defaults(); this.st = {}; for (const k of Object.keys(d)) this.st[k] = Object.assign({}, d[k], s[k] || {}); if (s.cat) this.cat = s.cat; } return this.st[this.cat]; },
+  saveConf() { STORE.d.set.quiz = Object.assign({}, this.st, { cat: this.cat }); STORE.saveLocal(); },
+  enter() {
+    this.conf();
+    MAP.hoverEnabled = false;
+    this.applyMapMode();
+    this.next();
+  },
+  leave() { MAP.paintPolitical(); MAP.hoverEnabled = true; this.q = null; },
+  applyMapMode() { MAP.setMode(this.cat === 'phy' ? 'physquiz' : 'political'); MAP.clearOverlays(); MAP.gLabels.selectAll('*').remove(); },
+  hover() { tooltip(null); },
+  refresh() { if (this.q && !this.q.done) this.render(); },
+  /* ---------- conjuntos de preguntas ---------- */
+  polPool() {
+    const c = this.conf();
+    let ids = D.states.filter(id => D.byId[id] || true);
+    if (!c.limited) ids = ids.filter(id => !['KOS', 'TWN', 'PSE'].includes(id));
+    if (c.regs.length) ids = ids.filter(id => c.regs.includes(D.info[id].reg));
+    const keys = [];
+    for (const m of c.types) for (const id of ids) { if ((m === 'mapn' || m === 'mapc') && !D.byId[id]) continue; keys.push(m + '|' + id); }
+    return keys;
+  },
+  phyItems() {
+    const c = this.conf(); const maxR = DIFF.find(d => d.k === c.diff).r;
+    const cats = new Set(PHY_GROUPS.filter(g => c.groups.includes(g.k)).flatMap(g => g.c));
+    const regOk = fid => !c.regs.length || [...(D.pRev[fid] || [])].some(cid => D.info[cid] && c.regs.includes(D.info[cid].reg));
+    return Object.entries(D.pitems).filter(([id, it]) => cats.has(it.c) && it.r <= maxR && D.pRev[id] && regOk(id) && (it.c !== 'isla' || it.r <= 3)).map(([id]) => id);
+  },
+  phyPool() {
+    const c = this.conf(); const items = this.phyItems(); const keys = [];
+    for (const m of c.types) {
+      if (m === 'ps') { for (const id of D.states) { if (c.regs.length && !c.regs.includes(D.info[id].reg)) continue; const seas = this.seasOf(id); if (seas.length) keys.push('ps|' + id); } }
+      else for (const id of items) keys.push(m + '|' + id);
+    }
+    return keys;
+  },
+  seasOf(id) { const ids = [id, ...(D.parts[id] || []).filter(t => D.byId[t].properties.kind === 'far')]; return uniq(ids.flatMap(i => D.pidx[i] || []).filter(f => D.pitems[f] && ['océano', 'mar'].includes(D.pitems[f].c))); },
+  carPool() {
+    const c = this.conf(); const keys = [];
+    for (const m of c.types) {
+      if (m === 'cl') CAR_LINES.forEach(l => keys.push('cl|' + l.id));
+      if (m === 'cp' || m === 'cq' || m === 'cs') PROJS.filter(p => p.quiz !== false).forEach(p => keys.push(m + '|' + p.id));
+      if (m === 'cc') CAR_CITIES.forEach(x => keys.push('cc|' + x[0]));
+    }
+    return keys;
+  },
+  pool() { const c = this.conf(); let k = this.cat === 'pol' ? this.polPool() : this.cat === 'phy' ? this.phyPool() : this.carPool(); if (c.review) { const tmin = Math.floor(now() / 60000); k = k.filter(x => { const r = STORE.rec(x); return r && r[2] && (r[0] <= 1 || r[4] > r[3] || r[1] <= tmin); }); } return k; },
+  /* ---------- siguiente pregunta ---------- */
+  next() {
+    MAP.clearOverlays(); MAP.paintPolitical(); tooltip(null);
+    if (this.cat === 'phy') MAP.cty.style('fill', null);
+    const keys = this.pool();
+    if (!keys.length) { this.q = null; this.render(); return; }
+    const key = STORE.pick(keys, this.recent);
+    this.recent.push(key); if (this.recent.length > Math.min(6, Math.floor(keys.length / 2))) this.recent.shift();
+    const [m, id] = key.split('|');
+    const q = this.q = { key, m, id, t0: now(), tries: 0, hint: false, done: false, cat: this.cat };
+    try { this.build(q); } catch (e) { console.error(e); this.recent.pop(); return this.next(); }
+    this.render(); this.stage();
+  },
+  build(q) {
+    const c = this.conf(), I = D.info, mc = c.mode === 'mc' || q.m === 'flagc' || this.cat === 'car';
+    q.mc = mc;
+    const regionPeers = (id, n = 12) => { const e = I[id]; const same = D.states.filter(x => x !== id && I[x].sub === e.sub); const nb = (e.borders || []).filter(x => I[x] && I[x].state); const reg = D.states.filter(x => x !== id && I[x].reg === e.reg); return uniq([...nb, ...shuffle(same), ...shuffle(reg)]).slice(0, n); };
+    const pickD = (cands, n = 3, label = x => x) => { const seen = new Set([norm(label(q.id))]); const out = []; for (const x of cands) { const l = norm(label(x)); if (seen.has(l)) continue; seen.add(l); out.push(x); if (out.length >= n) break; } return out; };
+    if (this.cat === 'pol') {
+      const e = I[q.id];
+      if (q.m === 'cap') { q.prompt = `¿Cuál es la capital de <u>${esc(e.name)}</u>?`; q.answer = e.cap; q.accept = [e.cap, ...(e.capAlts || [])]; q.label = 'capital'; if (mc) { const ds = pickD(shuffle(regionPeers(q.id, 6)).concat(regionPeers(q.id, 20)), 3, x => I[x].cap); q.opts = shuffle([q.id, ...ds]).map(x => ({ v: x, t: I[x].cap })); } }
+      else {
+        const nameOpts = cands => { const ds = pickD(cands, 3, x => I[x].name); return shuffle([q.id, ...ds]).map(x => ({ v: x, t: I[x].name })); };
+        q.answer = e.name; q.accept = [e.name, ...(e.alts || [])]; q.label = 'país';
+        if (q.m === 'capc') { q.prompt = `¿De qué país es capital <u>${esc(e.cap)}</u>?`; if (mc) q.opts = nameOpts(shuffle(regionPeers(q.id, 6)).concat(regionPeers(q.id, 20))); }
+        if (q.m === 'mapn') { q.prompt = '¿Qué país está resaltado en el mapa?'; if (mc) q.opts = nameOpts(regionPeers(q.id, 5).concat(regionPeers(q.id, 20))); }
+        if (q.m === 'mapc') { q.prompt = `Haz clic sobre <u>${esc(e.name)}</u> en el mapa`; q.click = true; q.mc = false; }
+        if (q.m === 'flag') { q.prompt = '¿De qué país es esta bandera?'; q.flag = q.id; if (mc) q.opts = nameOpts([...(e.flagSim || []).slice(0, 4), ...shuffle(regionPeers(q.id, 10))]); }
+        if (q.m === 'flagc') { q.prompt = `¿Cuál es la bandera de <u>${esc(e.name)}</u>?`; const ds = pickD([...(e.flagSim || []).slice(0, 5), ...regionPeers(q.id, 8)], 3, x => I[x].iso2); q.opts = shuffle([q.id, ...ds]).map(x => ({ v: x, flag: x })); q.flagOpts = true; }
+      }
+    }
+    if (this.cat === 'phy') {
+      if (q.m === 'ps') {
+        const e = I[q.id]; const seas = this.seasOf(q.id); const ans = seas[Math.random() * seas.length | 0]; q.target = ans;
+        q.prompt = `¿Qué mar u océano baña las costas de <u>${esc(e.name)}</u>?`; q.answer = D.pitems[ans].n; q.accept = [q.answer]; q.mc = true;
+        const others = Object.keys(D.pitems).filter(f => ['océano', 'mar'].includes(D.pitems[f].c) && !seas.includes(f) && D.pRev[f]);
+        const near = others.filter(f => [...D.pRev[f]].some(cid => I[cid] && I[cid].reg === e.reg));
+        const ds = pickD(shuffle(near).concat(shuffle(others)).filter(f => D.pitems[f].n !== q.answer), 3, f => D.pitems[f].n);
+        q.opts = shuffle([ans, ...ds]).map(f => ({ v: f, t: D.pitems[f].n })); q.correctV = ans;
+      } else {
+        const it = D.pitems[q.id]; q.answer = it.n; q.accept = [it.n]; q.target = q.id;
+        const grp = PHY_GROUPS.find(g => g.c.includes(it.c));
+        if (q.m === 'pn') {
+          q.prompt = `¿Cómo se llama ${art(it.c)} resaltad${fem(it.c) ? 'a' : 'o'}?`;
+          if (q.mc) { const pool = this.phyItems().filter(f => f !== q.id && grp.c.includes(D.pitems[f].c)); const near = pool.filter(f => [...(D.pRev[f] || [])].some(x => (D.pRev[q.id] || new Set()).has(x))); const ds = pickD(shuffle(near).concat(shuffle(pool)), 3, f => (f === q.id ? it.n : D.pitems[f].n)); q.opts = shuffle([q.id, ...ds]).map(f => ({ v: f, t: D.pitems[f].n })); }
+        } else { q.prompt = `Señala en el mapa: <u>${esc(it.n)}</u> <span class="muted" style="font-size:.7em">(${esc(it.c)})</span>`; q.click = true; q.mc = false; }
+      }
+    }
+    if (this.cat === 'car') {
+      q.mc = true;
+      if (q.m === 'cl') { const l = CAR_LINES.find(x => x.id === q.id); q.prompt = '¿Qué línea está resaltada en el mapa?'; q.answer = l.n; q.opts = shuffle([l, ...sample(CAR_LINES.filter(x => x !== l), 3)]).map(x => ({ v: x.id, t: x.n })); q.correctV = l.id; }
+      else if (q.m === 'cc') { const city = CAR_CITIES.find(x => x[0] === q.id); q.prompt = `¿Cuáles son las coordenadas del punto marcado? <span class="hint">Es ${esc(city[0])}.</span>`; const fmt = (lo, la) => `${Math.abs(la).toFixed(0)}° ${la >= 0 ? 'N' : 'S'}, ${Math.abs(lo).toFixed(0)}° ${lo >= 0 ? 'E' : 'O'}`; const ok = fmt(city[1], city[2]); const ds = uniq([fmt(-city[1], city[2]), fmt(city[1], -city[2]), fmt(-city[1], -city[2]), fmt(city[2], city[1])]).filter(x => x !== ok).slice(0, 3); q.answer = ok; q.opts = shuffle([ok, ...ds]).map(x => ({ v: x, t: x })); q.correctV = ok; q.city = city; }
+      else {
+        const p = PROJS.find(x => x.id === q.id);
+        if (q.m === 'cp') { q.prompt = '¿Qué proyección es esta?'; q.answer = p.n; q.proj = p; const sameF = PROJS.filter(x => x.id !== p.id && x.surf === p.surf); q.opts = shuffle([p, ...pickD(shuffle(sameF).concat(shuffle(PROJS.filter(x => x.id !== p.id))), 3, x => (x.id ? x.n : PROJS.find(y => y.id === x).n))]).map(x => ({ v: x.id, t: x.n })); q.correctV = p.id; }
+        if (q.m === 'cq') { q.prompt = `¿Qué propiedad conserva la proyección <u>${esc(p.n)}</u>?`; q.answer = PROPN[p.prop]; q.opts = Object.keys(PROPN).map(k => ({ v: k, t: PROPN[k] })); q.correctV = p.prop; }
+        if (q.m === 'cs') { q.prompt = `¿De qué tipo es la proyección <u>${esc(p.n)}</u>?`; q.answer = SURFN[p.surf]; q.opts = Object.keys(SURFN).map(k => ({ v: k, t: SURFN[k] })); q.correctV = p.surf; }
+      }
+    }
+    if (q.correctV == null) q.correctV = q.id;
+  },
+  /* ---------- puesta en escena del mapa ---------- */
+  stage() {
+    const q = this.q; if (!q) return;
+    const gH = MAP.gHL, I = D.info;
+    if (q.cat === 'pol') {
+      const regB = () => { const c = this.conf(); if (!c.regs.length) return null; const ids = D.states.filter(id => c.regs.includes(I[id].reg) && D.byId[id]); return boundsOf(ids.map(id => rectF(homeBounds(id)))); };
+      if (q.m === 'mapn' || q.m === 'cap') { this.markCountry(q.id, 'f-q'); this.flyContext(q.id); }
+      else if (q.m === 'mapc') { const b = regB(); b ? MAP.fit(b, { maxK: 12 }) : MAP.home(); }
+      else { const b = regB(); b ? MAP.fit(b, { maxK: 12 }) : MAP.home(); }
+    }
+    if (q.cat === 'phy') {
+      if (q.m === 'pn') { this.drawPhys(q.target, true); this.flyPhys(q.target); }
+      else if (q.m === 'ps') { this.markCountry(q.id, 'f-q'); MAP.cty.filter(d => d.id === q.id).style('fill', 'rgba(22,64,163,.45)'); this.flyContext(q.id, 3); }
+      else { const c = this.conf(); if (c.regs.length) { const ids = D.states.filter(id => c.regs.includes(I[id].reg)); MAP.fit(boundsOf(ids.map(id => rectF(homeBounds(id)))), { maxK: 8 }); } else MAP.home(); }
+    }
+    if (q.cat === 'car') {
+      if (q.m === 'cl') { const l = CAR_LINES.find(x => x.id === q.id); const ls = l.lat != null ? { type: 'LineString', coordinates: d3.range(-180, 180.1, 2).map(x => [x, l.lat]) } : { type: 'LineString', coordinates: d3.range(-90, 90.1, 2).map(y => [l.lon === 180 ? 179.99 : l.lon, y]) }; gH.append('path').attr('class', 'hl-line').attr('d', D.ppath(ls)); gH.append('path').attr('class', 'hl-line2').attr('d', D.ppath(ls)); MAP.home(); }
+      else if (q.m === 'cc') { const p = D.proj([q.city[1], q.city[2]]); gH.append('path').attr('class', 'grat').style('stroke', 'var(--muted)').attr('d', D.ppath(d3.geoGraticule().step([15, 15])())); gH.append('circle').attr('class', 'hl-pt').attr('cx', p[0]).attr('cy', p[1]).attr('r', 0.9); MAP.home(); }
+      else MAP.home();
+    }
+  },
+  markCountry(id, cls) { MAP.cty.filter(d => d.id === id || (d.properties && d.properties.kind === 'far' && d.properties.sov === id)).classed(cls, true); MAP.mk.filter(d => d.id === id).classed(cls, true).attr('display', null); },
+  flyContext(id, mult = 5) { const b = homeBounds(id); const cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2; const s = Math.max(b[1][0] - b[0][0], b[1][1] - b[0][1], 30) * mult / 2; MAP.fit([[cx - s, cy - s * 0.6], [cx + s, cy + s * 0.6]], { maxK: 30 }); },
+  physFeature(fid) { const it = D.pitems[fid]; if (D.pgeo[fid]) return D.pgeo[fid]; const p = D.proj([it.x, it.y]); return { type: 'Feature', geometry: { type: 'Point', coordinates: p } }; },
+  drawPhys(fid, strong) {
+    const f = this.physFeature(fid), g = MAP.gHL, t = f.geometry.type;
+    if (t === 'Point') { const [x, y] = f.geometry.coordinates; g.append('circle').attr('class', 'hl-pt').attr('cx', x).attr('cy', y).attr('r', 6 / MAP.k).attr('data-scale', 6); }
+    else if (/Line/.test(t)) { g.append('path').attr('class', 'hl-line').attr('d', D.path(f)); g.append('path').attr('class', 'hl-line2').attr('d', D.path(f)); }
+    else g.append('path').attr('class', 'hl-poly').attr('d', D.path(f));
+    MAP.zoomHook = k => MAP.gHL.selectAll('circle[data-scale]').attr('r', function () { return +this.dataset.scale / k; });
+  },
+  flyPhys(fid) {
+    const f = this.physFeature(fid); let b;
+    if (f.geometry.type === 'Point') { const [x, y] = f.geometry.coordinates; b = [[x - 1, y - 1], [x + 1, y + 1]]; } else b = D.path.bounds(f);
+    const cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2; const s = Math.max(b[1][0] - b[0][0], b[1][1] - b[0][1], 40) * 1.5;
+    MAP.fit([[cx - s, cy - s * 0.62], [cx + s, cy + s * 0.62]], { maxK: 10 });
+  },
+  physLabel(fid) { const it = D.pitems[fid]; const L = it.L && it.L.x != null ? [it.L.x, it.L.y] : D.proj([it.x, it.y]); MAP.gTop.append('text').attr('class', 'lbl').attr('x', L[0]).attr('y', L[1] - (D.pgeo[fid] ? 0 : 1.2 * 13 / MAP.k)).attr('font-size', '1.15em').style('font-weight', 700).text(it.n + (it.e ? ` (${nf.format(it.e)} m)` : '')); MAP.onZoom(); },
+  /* ---------- respuesta ---------- */
+  click(id, ev, w) {
+    const q = this.q; if (!q || q.done || !q.click) return;
+    if (q.cat === 'pol') {
+      if (!id) return;
+      const f = D.byId[id]; const real = f && f.properties && f.properties.kind === 'far' ? f.properties.sov : id;
+      const ok = real === q.id;
+      q.clicked = real;
+      this.finish(ok, ok ? '' : `Has pulsado <b>${esc(nameOf(real))}</b>.`);
+    } else if (q.cat === 'phy') {
+      const d = this.distTo(q.target, w); const tol = 16 / MAP.k;
+      const ok = d <= tol;
+      MAP.gTop.append('circle').attr('class', 'click-mk').attr('cx', w[0]).attr('cy', w[1]).attr('r', 7 / MAP.k);
+      this.finish(ok, ok ? '' : 'Tu clic quedó lejos.');
+    }
+  },
+  distTo(fid, w) {
+    const f = this.physFeature(fid), g = f.geometry; const [px, py] = w;
+    const segD = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1]; const l = dx * dx + dy * dy; let t = l ? ((px - a[0]) * dx + (py - a[1]) * dy) / l : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(px - a[0] - t * dx, py - a[1] - t * dy); };
+    const lineD = l => { let m = Infinity; for (let i = 1; i < l.length; i++) m = Math.min(m, segD(l[i - 1], l[i])); return m; };
+    if (g.type === 'Point') return Math.hypot(px - g.coordinates[0], py - g.coordinates[1]);
+    if (g.type === 'LineString') return lineD(g.coordinates);
+    if (g.type === 'MultiLineString') return Math.min(...g.coordinates.map(lineD));
+    const polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
+    let m = Infinity;
+    for (const p of polys) { if (d3.polygonContains(p[0], [px, py]) && !p.slice(1).some(h => d3.polygonContains(h, [px, py]))) return 0; for (const r of p) m = Math.min(m, lineD(r)); }
+    return m;
+  },
+  choose(v) {
+    const q = this.q; if (!q || q.done) return;
+    q.chosen = v; const ok = v === q.correctV;
+    this.finish(ok, '');
+  },
+  submitText(txt) {
+    const q = this.q; if (!q || q.done) return;
+    const a = norm(txt); if (!a) return;
+    const acc = uniq(q.accept.map(norm)).filter(Boolean);
+    if (acc.includes(a)) return this.finish(true, '');
+    const close = acc.some(x => lev(x, a) <= (x.length > 7 ? 2 : 1));
+    if (close && q.tries === 0) { q.tries = 1; q.hint = true; this.flash('Casi: revisa la ortografía e inténtalo otra vez.', 'warn'); return; }
+    if (close) return this.finish(true, 'Aceptado con una pequeña errata.');
+    q.typed = txt; this.finish(false, `Has escrito «${esc(txt)}».`);
+  },
+  giveHint() { const q = this.q; if (!q || q.done) return; q.hint = true; const a = q.answer || ''; this.flash(`Empieza por <b>${esc(a.slice(0, 2))}</b>… y tiene ${a.replace(/\s/g, '').length} letras.`, 'warn'); },
+  flash(html, kind) { const el = $('#qfb'); if (el) { el.className = 'fb ' + kind; el.innerHTML = html; el.hidden = false; } },
+  finish(ok, extra) {
+    const q = this.q; q.done = true; q.ok = ok;
+    const ms = now() - q.t0; const fastT = q.mc ? 4000 : q.click ? 5000 : 7000;
+    let g = ok ? (q.hint || q.tries || ms > 20000 ? 1 : ms < fastT ? 3 : 2) : 0;
+    const r = STORE.grade(q.key, g, ms);
+    q.grade = g; q.box = r[0];
+    this.sc.n++; if (ok) { this.sc.ok++; this.sc.streak++; this.sc.best = Math.max(this.sc.best, this.sc.streak); } else this.sc.streak = 0;
+    q.extra = extra;
+    // mapa: revelar
+    if (q.cat === 'pol') {
+      MAP.cty.classed('f-q', false); MAP.mk.classed('f-q', false);
+      this.markCountry(q.id, ok ? 'f-ok' : 'f-q');
+      if (q.clicked && !ok) { this.markCountry(q.clicked, 'f-bad'); MAP.fit(boundsOf([rectF(homeBounds(q.clicked)), rectF(homeBounds(q.id))]), { maxK: 20 }); }
+      else if (!['mapn', 'cap'].includes(q.m)) this.flyContext(q.id, 4);
+      const e = D.info[q.id]; const p = e.lab ? D.proj([e.lab[0], e.lab[1]]) : D.path.centroid(D.byId[q.id]);
+      MAP.gTop.append('text').attr('class', 'lbl').attr('x', p[0]).attr('y', p[1]).attr('font-size', '1.15em').style('font-weight', 700).text(e.name); MAP.onZoom();
+    }
+    if (q.cat === 'phy') {
+      if (q.m === 'pl') { MAP.gHL.selectAll('*').remove(); this.drawPhys(q.target); this.flyPhys(q.target); }
+      if (q.m === 'ps') { this.drawPhys(q.target); }
+      this.physLabel(q.target);
+    }
+    this.render();
+  },
+  skip() { const q = this.q; if (!q || q.done) return; this.finish(false, 'Pregunta saltada.'); },
+  key(e) {
+    if (APP.tab !== 'examen' || !this.q) return;
+    const inInput = e.target && e.target.tagName === 'INPUT';
+    if (e.key === 'Enter' && this.q.done) { e.preventDefault(); this.next(); return; }
+    if (!inInput && !this.q.done && this.q.mc && /^[1-4]$/.test(e.key)) { const o = this.q.opts[+e.key - 1]; if (o) this.choose(o.v); }
+  },
+  /* ---------- panel ---------- */
+  render() {
+    const q = this.q, c = this.conf();
+    const lvl = q ? STORE.level(q.key) : 0;
+    const typeName = q ? ([...POL_TYPES, ...PHY_TYPES, ...CAR_TYPES].find(t => t.m === q.m) || {}).n : '';
+    const seg = `<div class="seg" role="group" aria-label="Categoría">${[['pol', 'Países'], ['phy', 'Accidentes'], ['car', 'Cartografía']].map(([k, n]) => `<button data-cat="${k}" aria-pressed="${this.cat === k}">${n}</button>`).join('')}</div>`;
+    const score = `<div class="score"><span>Aciertos <b>${this.sc.ok}/${this.sc.n}</b></span><span>Racha <b>${this.sc.streak}</b></span><span>Mejor <b>${this.sc.best}</b></span></div>`;
+    let body = '';
+    if (!q) body = `<div class="card"><p><b>No hay preguntas con estos ajustes.</b></p><p class="small muted">${c.review ? 'No tienes nada pendiente de repaso aquí: desactiva «Solo repasar» o amplía la selección.' : 'Marca al menos un tipo de pregunta y una categoría.'}</p></div>`;
+    else {
+      let ans = '';
+      if (q.flagOpts) ans = `<div class="opts flags">${q.opts.map((o, i) => `<button class="opt flagopt ${q.done ? (o.v === q.correctV ? 'ok' : o.v === q.chosen ? 'bad' : '') : ''}" data-v="${o.v}" ${q.done ? 'disabled' : ''} aria-label="Opción ${i + 1}"><div class="flagbox">${flagSvg(o.v)}</div>${q.done ? `<div class="small" style="margin-top:4px">${esc(nameOf(o.v))}</div>` : ''}</button>`).join('')}</div>`;
+      else if (q.mc) ans = `<div class="opts">${q.opts.map((o, i) => `<button class="opt ${q.done ? (o.v === q.correctV ? 'ok' : o.v === q.chosen ? 'bad' : '') : ''}" data-v="${esc(o.v)}" ${q.done ? 'disabled' : ''}><span class="k">${i + 1}</span>${esc(o.t)}</button>`).join('')}</div>`;
+      else if (q.click) ans = q.done ? '' : `<p class="muted small">Puedes acercar el mapa antes de hacer clic.</p>`;
+      else ans = `<form class="answer-in" id="qform"><input id="qin" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe ${q.label === 'capital' ? 'la capital' : 'el nombre'}…" ${q.done ? 'disabled' : ''} aria-label="Respuesta"><button class="btn primary" ${q.done ? 'disabled' : ''}>Responder</button></form>`;
+      let fb = '';
+      if (q.done) {
+        const verdict = q.ok ? (q.grade === 3 ? '¡Correcto y rápido!' : q.grade === 1 ? 'Correcto, con ayuda o algo lento.' : '¡Correcto!') : 'No es correcto.';
+        const right = q.cat === 'pol' ? (q.m === 'cap' ? `La capital de ${esc(D.info[q.id].name)} es <b>${esc(D.info[q.id].cap)}</b>.` : `Es <b>${esc(D.info[q.id].name)}</b>${q.m === 'capc' || q.m === 'flag' || q.m === 'flagc' ? ` (capital: ${esc(D.info[q.id].cap)})` : ''}.`) : `Respuesta: <b>${esc(q.answer)}</b>.`;
+        const more = q.cat === 'car' && q.m !== 'cl' && q.m !== 'cc' ? `<div class="small" style="margin-top:4px">${esc(PROJS.find(p => p.id === q.id).n)}: ${esc(PROJS.find(p => p.id === q.id).keeps)}</div>` : '';
+        const nextIn = q.box != null ? `<div class="small muted" style="margin-top:4px">Nivel: ${LEVELS[STORE.level(q.key)].n}${q.ok ? ` · volverá dentro de ${fmtIv(INTERVALS_MIN[q.box] * (q.grade === 1 ? 0.4 : 1))}` : ' · volverá pronto'}</div>` : '';
+        fb = `<div class="fb ${q.ok ? 'ok' : 'bad'}"><b>${verdict}</b> ${q.extra || ''} ${right}${more}${nextIn}</div>`;
+      }
+      const media = q.flag ? `<div class="qflag">${flagSvg(q.flag)}</div>` : q.proj ? `<div class="figure" style="padding:6px">${projThumb(q.proj, 360, 220)}</div>` : '';
+      body = `<div class="qcard">
+        <div class="row" style="justify-content:space-between"><span class="eyebrow">${esc(typeName)}</span><span class="lvl"><span class="dot" style="background:${LEVELS[lvl].c}"></span>${LEVELS[lvl].n}</span></div>
+        <div class="qprompt">${q.prompt}</div>
+        ${media}${ans}
+        <div class="fb" id="qfb" hidden></div>
+        ${fb}
+        <div class="row">${q.done ? `<button class="btn primary" id="qnext">Siguiente <span class="kbd">↵</span></button>${q.cat === 'pol' ? `<button class="btn" id="qinfo">Ver ficha</button>` : ''}` : `${!q.mc && !q.click ? '<button class="btn" id="qhint">Pista</button>' : ''}<button class="btn" id="qskip">No lo sé</button>`}</div>
+        ${!q.done && q.mc ? '<div class="kbd">Atajo: teclas 1–4</div>' : ''}
+      </div>`;
+    }
+    setPanel(`<div class="stack">
+      <div class="row" style="justify-content:space-between">${seg}</div>
+      ${score}
+      ${body}
+      <details class="sec" id="qset" ${STORE.d.set.qsetOpen ? 'open' : ''}><summary style="cursor:pointer;font-weight:700">Ajustes de esta categoría</summary><div class="setup" style="margin-top:10px">${this.setupHtml()}</div></details>
+    </div>`);
+    this.bind();
+  },
+  setupHtml() {
+    const c = this.conf();
+    const types = this.cat === 'pol' ? POL_TYPES : this.cat === 'phy' ? PHY_TYPES : CAR_TYPES;
+    const regChips = `<fieldset><legend>Región</legend><div class="chips"><button class="chip" data-reg="" aria-pressed="${!c.regs.length}">Todo el mundo</button>${REGIONS.map(r => `<button class="chip" data-reg="${r}" aria-pressed="${c.regs.includes(r)}">${r}</button>`).join('')}</div></fieldset>`;
+    const modeSeg = `<fieldset><legend>Forma de responder</legend><div class="seg"><button data-mode="mc" aria-pressed="${c.mode === 'mc'}">Test (4 opciones)</button><button data-mode="txt" aria-pressed="${c.mode === 'txt'}">Escrita</button></div></fieldset>`;
+    let h = `<fieldset><legend>Tipos de pregunta</legend><div class="typegrid">${types.map(t => `<label><input type="checkbox" data-type="${t.m}" ${c.types.includes(t.m) ? 'checked' : ''}><span>${t.n}${t.d ? `<br><span class="muted small">${t.d}</span>` : ''}</span></label>`).join('')}</div></fieldset>`;
+    if (this.cat === 'pol') h += regChips + modeSeg + `<label class="toggle"><input type="checkbox" id="qlim" ${c.limited ? 'checked' : ''}>Incluir Kosovo, Palestina y Taiwán</label>`;
+    if (this.cat === 'phy') h += `<fieldset><legend>Accidentes</legend><div class="chips">${PHY_GROUPS.map(g => `<button class="chip" data-grp="${g.k}" aria-pressed="${c.groups.includes(g.k)}">${g.n}</button>`).join('')}</div></fieldset>
+      <fieldset><legend>Dificultad</legend><div class="seg">${DIFF.map(d => `<button data-diff="${d.k}" aria-pressed="${c.diff === d.k}">${d.n}</button>`).join('')}</div></fieldset>` + regChips + modeSeg;
+    h += `<label class="toggle"><input type="checkbox" id="qrev" ${c.review ? 'checked' : ''}>Solo repasar lo pendiente y lo que más fallo</label>`;
+    const n = this.pool().length;
+    h += `<p class="small muted">${n} preguntas posibles con estos ajustes. Lo nuevo y lo fallado sale a menudo; lo que dominas, de vez en cuando.</p>`;
+    return h;
+  },
+  bind() {
+    const B = $('#panelBody'), c = this.conf();
+    const changed = () => { this.saveConf(); this.recent = []; this.next(); };
+    $$('[data-cat]', B).forEach(b => b.onclick = () => { if (this.cat === b.dataset.cat) return; this.cat = b.dataset.cat; this.saveConf(); this.recent = []; this.applyMapMode(); this.next(); });
+    $$('[data-v]', B).forEach(b => b.onclick = () => this.choose(b.dataset.v));
+    const f = $('#qform', B); if (f) { f.onsubmit = e => { e.preventDefault(); this.submitText($('#qin').value); }; if (!this.q.done && !isMobile()) setTimeout(() => { const i = $('#qin'); i && i.focus(); }, 30); }
+    const nx = $('#qnext', B); if (nx) { nx.onclick = () => this.next(); if (!isMobile()) nx.focus(); }
+    const hi = $('#qhint', B); if (hi) hi.onclick = () => this.giveHint();
+    const sk = $('#qskip', B); if (sk) sk.onclick = () => this.skip();
+    const inf = $('#qinfo', B); if (inf) inf.onclick = () => { switchTab('explorar'); EXPLORE.select(this.q.id); };
+    const det = $('#qset', B); if (det) det.ontoggle = () => { STORE.d.set.qsetOpen = det.open; STORE.saveLocal(); };
+    $$('[data-type]', B).forEach(i => i.onchange = () => { c.types = $$('[data-type]', B).filter(x => x.checked).map(x => x.dataset.type); changed(); });
+    $$('[data-reg]', B).forEach(b => b.onclick = () => { const r = b.dataset.reg; if (!r) c.regs = []; else c.regs = c.regs.includes(r) ? c.regs.filter(x => x !== r) : [...c.regs, r]; changed(); });
+    $$('[data-mode]', B).forEach(b => b.onclick = () => { c.mode = b.dataset.mode; changed(); });
+    $$('[data-grp]', B).forEach(b => b.onclick = () => { const k = b.dataset.grp; c.groups = c.groups.includes(k) ? c.groups.filter(x => x !== k) : [...c.groups, k]; changed(); });
+    $$('[data-diff]', B).forEach(b => b.onclick = () => { c.diff = +b.dataset.diff; changed(); });
+    const lim = $('#qlim', B); if (lim) lim.onchange = () => { c.limited = lim.checked; changed(); };
+    const rv = $('#qrev', B); if (rv) rv.onchange = () => { c.review = rv.checked; changed(); };
+  }
+};
+function rectF(b) { return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[b[0], [b[0][0], b[1][1]], b[1], [b[1][0], b[0][1]], b[0]]] } }; }
+function fmtIv(min) { if (min < 60) return Math.max(1, Math.round(min)) + ' min'; if (min < 60 * 24) return Math.round(min / 60) + ' h'; const d = Math.round(min / 1440); return d + (d === 1 ? ' día' : ' días'); }
+const FEM = ['cordillera', 'península', 'isla', 'meseta', 'llanura', 'cuenca', 'tundra', 'bahía', 'laguna', 'depresión'];
+function fem(c) { return FEM.includes(c); }
+function art(c) { return (fem(c) ? 'la ' : 'el ') + c; }
+APP.tabs.examen = QUIZ;
+
+/* ============ FÍSICO ============ */
+const PCLS = { 'océano': 'ocean-l', mar: 'water', golfo: 'water', 'bahía': 'water', estrecho: 'water', canal: 'water', fiordo: 'water', laguna: 'water', arrecife: 'water', lago: 'water', embalse: 'water', 'río': 'water', cordillera: 'range', pico: 'peak', 'volcán': 'peak', 'depresión': 'peak', 'península': 'land', istmo: 'land', isla: 'land', 'archipiélago': 'land', delta: 'land', desierto: 'region', meseta: 'region', llanura: 'region', cuenca: 'region', tundra: 'region', valle: 'region', humedal: 'region' };
+const PGRP = Object.fromEntries(PHY_GROUPS.flatMap(g => g.c.map(c => [c, g.k])));
+const PPRI = { 'ocean-l': 0, water: 1, range: 2, region: 3, land: 4, peak: 5 };
+const PHYS = {
+  sel: null, feat: null, built: false,
+  o: Object.assign(Object.fromEntries(PHY_GROUPS.map(g => [g.k, true])), { borders: true }),
+  enter() {
+    MAP.setMode('physical'); $('#searchbox').hidden = false; $('#legend').hidden = false;
+    this.build(); this.legend(); this.labels();
+    MAP.layoutHook = () => this.layout(); MAP.zoomHook = k => this.zoomed(k);
+    this.zoomed(MAP.k); this.layout();
+    if (this.feat) this.selectFeature(this.feat, false); else if (this.sel) this.select(this.sel, false); else this.intro();
+  },
+  leave() { MAP.gPhys.attr('display', 'none'); MAP.cty.style('display', null); },
+  build() {
+    if (this.built) return; this.built = true;
+    const g = MAP.gPhys;
+    const lakes = Object.keys(D.pitems).filter(id => id[0] === 'l' && D.pgeo[id]);
+    g.append('g').selectAll('path').data(lakes).join('path').attr('class', 'lake').attr('d', id => D.path(D.pgeo[id]));
+    const rivers = Object.keys(D.pitems).filter(id => id[0] === 'v' && D.pgeo[id]).sort((a, b) => D.pitems[b].r - D.pitems[a].r);
+    this.riv = g.append('g').selectAll('path').data(rivers).join('path').attr('class', 'river').attr('d', id => D.path(D.pgeo[id]))
+      .style('stroke-width', id => { const r = D.pitems[id].r; return (r <= 2 ? 2.2 : r <= 4 ? 1.5 : r <= 6 ? 1.1 : 0.8) + 'px'; })
+      .on('click', (ev, id) => { ev.stopPropagation(); this.selectFeature(id); })
+      .on('pointerenter', (ev, id) => tooltip(`<b>${esc(D.pitems[id].n)}</b><span class="muted">río</span>`, ev)).on('pointerleave', () => tooltip(null));
+  },
+  zoomed(k) {
+    const rel = MAP.rel();
+    if (this.riv) this.riv.attr('display', id => this.o.rivers && D.pitems[id].r <= 3 + 2.2 * Math.log2(Math.max(1, rel)) ? null : 'none');
+    MAP.gHL.selectAll('circle[data-scale]').attr('r', function () { return +this.dataset.scale / k; });
+  },
+  labels() {
+    const data = [];
+    for (const [id, it] of Object.entries(D.pitems)) {
+      if (!D.pRev[id] && it.c !== 'océano' && it.c !== 'mar') continue;
+      const cls = PCLS[it.c]; if (!cls) continue;
+      if (it.c === 'isla' && it.r > 3) continue;
+      let x, y, a = 0;
+      if (it.L && it.L.x != null) { x = it.L.x; y = it.L.y; a = it.L.a; }
+      else { if (it.x == null) continue; [x, y] = D.proj([it.x, it.y]); if (it.L && it.L.a) a = cls === 'range' || cls === 'region' ? it.L.a : 0; }
+      if (cls === 'water' && it.c !== 'río') a = 0;
+      const r = it.r;
+      const em = cls === 'ocean-l' ? 1.55 : cls === 'water' ? (it.c === 'río' ? 0.78 : r <= 1 ? 1.05 : 0.86) : cls === 'range' ? (r <= 1 ? 0.92 : 0.78) : cls === 'peak' ? 0.82 : cls === 'region' ? (r <= 1 ? 0.95 : 0.8) : 0.85;
+      const minK = cls === 'ocean-l' ? 0 : r <= 1 ? 1 : Math.pow(2, (r - 1) * 0.85);
+      const text = it.n;
+      const ls = cls === 'ocean-l' ? 0.3 : cls === 'range' ? 0.22 : cls === 'region' ? 0.18 : 0;
+      data.push({ id, x, y, a, text, em, minK, pri: r * 10 + PPRI[cls], cls, ls, grp: PGRP[it.c], lines: cls === 'peak' ? 2.3 : 1.2, w: cls === 'peak' ? Math.max(text.length, 8) * 0.56 : null });
+    }
+    const g = MAP.gLabels;
+    this.lab = g.selectAll('text.plab').data(data).join('text').attr('class', d => 'plab ' + d.cls).attr('data-id', d => d.id).attr('font-size', d => d.em + 'em')
+      .attr('transform', d => `translate(${d.x},${d.y}) rotate(${d.a || 0})`)
+      .html(d => d.cls === 'peak' ? `<tspan x="0" dy="0">▲</tspan><tspan x="0" dy="1.1em">${esc(d.text)}</tspan>${D.pitems[d.id].e ? `<tspan x="0" dy="1.05em" style="font-size:.85em;font-family:var(--f-mono)">${nf.format(D.pitems[d.id].e)} m</tspan>` : ''}` : esc(d.text))
+      .on('click', (ev, d) => { ev.stopPropagation(); this.selectFeature(d.id); });
+    this.lab.filter(d => d.cls === 'peak').attr('transform', d => `translate(${d.x},${d.y})`).style('dominant-baseline', 'central');
+  },
+  layout() {
+    if (!this.lab) return;
+    const o = this.o;
+    const sel = this.lab.filter(d => o[d.grp] !== false);
+    this.lab.filter(d => o[d.grp] === false).attr('display', 'none');
+    MAP.layoutLabels(sel, { always: d => d.id === this.feat });
+    this.lab.classed('on', d => d.id === this.feat);
+  },
+  legend() {
+    const o = this.o;
+    $('#legend').innerHTML = `<summary>Capas del mapa físico</summary><div class="rows">
+      ${PHY_GROUPS.map(g => `<label><input type="checkbox" data-k="${g.k}" ${o[g.k] ? 'checked' : ''}><span></span><span>${g.n}</span></label>`).join('')}
+      <label><input type="checkbox" data-k="borders" ${o.borders ? 'checked' : ''}><span></span><span>Fronteras</span></label>
+      <div class="note">Relieve sombreado y tintas hipsométricas (Natural Earth) con batimetría (ETOPO1). Acerca el mapa para ver más nombres; pulsa un nombre o un río para resaltarlo.</div></div>`;
+    $$('#legend input[data-k]').forEach(i => i.onchange = () => { o[i.dataset.k] = i.checked; if (i.dataset.k === 'borders') MAP.cty.style('stroke-opacity', i.checked ? null : 0); this.zoomed(MAP.k); this.layout(); });
+    if (isMobile()) $('#legend').open = false;
+  },
+  hover(id, ev) { if (!id) return tooltip(null); const e = D.info[id]; if (e) tooltip(`<b>${esc(e.name)}</b><span class="muted small">Pulsa para ver sus accidentes</span>`, ev); },
+  click(id) { if (!id) return; this.select(baseId(id)); },
+  intro() {
+    setPanel(`<div class="stack"><div class="eyebrow">Mapa físico</div><h2>Mares, cordilleras, ríos y picos</h2>
+      <p>Pulsa un país para ver la lista de sus accidentes geográficos, o pulsa cualquier nombre del mapa para resaltarlo.</p>
+      <p class="muted small">${Object.keys(D.pitems).length} accidentes: ${PHY_GROUPS.map(g => g.n.toLowerCase()).join(', ')}.</p>
+      <div class="sec"><h4>Prueba con</h4><div class="chips">${['ESP', 'ITA', 'CHL', 'NPL', 'EGY', 'IDN', 'USA', 'NOR'].map(c => `<button class="chip" data-go="${c}">${esc(nameOf(c))}</button>`).join('')}</div></div>
+      <div class="sec"><h4>Grandes accidentes</h4><div class="chips">${Object.entries(D.pitems).filter(([id, it]) => it.r === 0 && ['cordillera', 'río', 'desierto', 'océano'].includes(it.c)).slice(0, 14).map(([id, it]) => `<button class="chip" data-f="${id}">${esc(it.n)}</button>`).join('')}</div></div></div>`);
+    $$('[data-go]', $('#panelBody')).forEach(b => b.onclick = () => this.select(b.dataset.go));
+    $$('[data-f]', $('#panelBody')).forEach(b => b.onclick = () => this.selectFeature(b.dataset.f));
+  },
+  select(id, fly = true) {
+    if (!D.info[id]) return;
+    this.sel = id; this.feat = null; MAP.gHL.selectAll('*').remove();
+    const f = D.byId[id]; MAP.gHL.append('path').attr('class', 'ln ln-sel-halo').attr('d', D.path(f)); MAP.gHL.append('path').attr('class', 'ln ln-sel').attr('d', D.path(f));
+    for (const t of (D.parts[id] || []).filter(t => D.byId[t].properties.kind === 'far')) MAP.gHL.append('path').attr('class', 'ln ln-terr').attr('d', D.path(D.byId[t]));
+    if (fly) MAP.fit(homeBounds(id), { maxK: 9 });
+    this.panel(); this.layout();
+  },
+  listFor(id) { const ids = [id, ...(D.parts[id] || []).filter(t => D.byId[t].properties.kind === 'far')]; return uniq(ids.flatMap(i => D.pidx[i] || [])); },
+  panel() {
+    const id = this.sel, e = D.info[id]; const list = this.listFor(id);
+    const groups = PHY_GROUPS.map(g => ({ g, items: list.filter(f => g.c.includes(D.pitems[f].c)).sort((a, b) => (D.pitems[a].r - D.pitems[b].r) || ((D.pitems[b].e || 0) - (D.pitems[a].e || 0))) })).filter(x => x.items.length);
+    setPanel(`<div class="stack">
+      <div class="eyebrow">Accidentes geográficos</div>
+      <div class="row" style="gap:12px;flex-wrap:nowrap"><div style="width:54px;flex:none;border-radius:4px;overflow:hidden;box-shadow:0 0 0 1px var(--line)">${flagSvg(id)}</div><h2>${esc(e.name)}</h2></div>
+      ${groups.map(({ g, items }) => `<div class="sec"><h4>${g.n} <span class="muted">${items.length}</span></h4><ul class="list">${items.map(f => { const it = D.pitems[f]; return `<li><button data-f="${f}"><span>${esc(it.n)}</span><span class="meta">${it.e ? nf.format(it.e) + ' m' : esc(it.c)}</span></button></li>`; }).join('')}</ul></div>`).join('') || '<p class="muted">No hay accidentes registrados para este territorio a esta escala.</p>'}
+      <div class="row"><button class="btn sm" id="toPol">Ver ficha política</button></div>
+    </div>`);
+    $$('[data-f]', $('#panelBody')).forEach(b => b.onclick = () => this.selectFeature(b.dataset.f, true, true));
+    $('#toPol').onclick = () => { switchTab('explorar'); EXPLORE.select(id); };
+  },
+  selectFeature(fid, fly = true, keepPanel = false) {
+    this.feat = fid; MAP.gHL.selectAll('.hl-poly,.hl-line,.hl-line2,.hl-pt').remove();
+    QUIZ.drawPhys.call(QUIZ, fid); MAP.zoomHook = k => this.zoomed(k);
+    if (fly) QUIZ.flyPhys(fid);
+    this.layout();
+    if (keepPanel && this.sel) { this.featCard(fid, true); return; }
+    this.featCard(fid, false);
+  },
+  featCard(fid, inline) {
+    const it = D.pitems[fid]; const cs = [...(D.pRev[fid] || [])].filter(c => D.info[c] && (D.info[c].state || D.info[c].kind === 'territory')).sort((a, b) => nameOf(a).localeCompare(nameOf(b), 'es'));
+    const html = `<div class="card stack" style="gap:8px"><div class="eyebrow">${esc(it.c)}</div><h3>${esc(it.n)}</h3>
+      ${it.e ? `<div>Altitud: <b class="kv">${nf.format(it.e)} m</b></div>` : ''}
+      ${cs.length ? `<div class="small muted">${it.c === 'océano' || it.c === 'mar' ? 'Baña' : 'Se extiende por'} ${cs.length} ${cs.length === 1 ? 'país o territorio' : 'países o territorios'}:</div><div class="chips">${cs.slice(0, 40).map(c => `<button class="chip" data-go="${c}">${esc(nameOf(c))}</button>`).join('')}</div>` : ''}
+      <div class="small muted">Importancia: ${it.r <= 1 ? 'muy alta' : it.r <= 3 ? 'alta' : it.r <= 5 ? 'media' : 'local'} (rango ${it.r} de Natural Earth)</div></div>`;
+    if (inline) { const old = $('#featCard'); if (old) old.remove(); const d = document.createElement('div'); d.id = 'featCard'; d.innerHTML = html; $('#panelBody .stack').insertBefore(d, $('#panelBody .stack').children[2]); $('#panel').scrollTop = 0; }
+    else setPanel(`<div class="stack"><div class="eyebrow">Accidente geográfico</div>${html}${this.sel ? `<button class="btn sm" id="backC">Volver a ${esc(nameOf(this.sel))}</button>` : ''}</div>`);
+    $$('[data-go]', $('#panelBody')).forEach(b => b.onclick = () => this.select(b.dataset.go));
+    const bk = $('#backC'); if (bk) bk.onclick = () => this.select(this.sel);
+  }
+};
+APP.tabs.fisico = PHYS;
+
+/* ============ PROGRESO ============ */
+const POLM = POL_TYPES.map(t => t.m), PHYM = PHY_TYPES.map(t => t.m), CARM = CAR_TYPES.map(t => t.m);
+const PROG = {
+  page: true, type: 'all', confirm: null,
+  enter() { this.render(); },
+  refresh() { if (APP.tab === 'progreso') this.render(); },
+  lvlOf(id) {
+    if (this.type !== 'all') return STORE.level(this.type + '|' + id);
+    const ls = POLM.map(m => STORE.level(m + '|' + id)); if (ls.every(l => l === 0)) return 0;
+    return Math.round(ls.reduce((a, b) => a + b, 0) / ls.length) || 1;
+  },
+  counts(keys) { const c = [0, 0, 0, 0]; keys.forEach(k => c[STORE.level(k)]++); return c; },
+  render() {
+    const items = STORE.d.items; const keys = Object.keys(items);
+    const tot = STORE.d.tot; const acc = tot.n ? Math.round(tot.ok / tot.n * 100) : 0;
+    const polKeys = D.states.flatMap(id => (this.type === 'all' ? POLM : [this.type]).map(m => m + '|' + id));
+    const dom = keys.filter(k => STORE.level(k) === 3).length;
+    // barras por región
+    const bars = REGIONS.map(r => { const ids = D.states.filter(id => D.info[id].reg === r); const ks = ids.flatMap(id => (this.type === 'all' ? POLM : [this.type]).map(m => m + '|' + id)); const c = this.counts(ks); const n = ks.length; return { r, c, n, pct: n ? Math.round(c[3] / n * 100) : 0 }; });
+    // más fallados
+    const byC = {}; for (const [k, r] of Object.entries(items)) { const [m, id] = k.split('|'); if (!POLM.includes(m)) continue; const o = byC[id] = byC[id] || { bad: 0, ok: 0, modes: {} }; o.bad += r[4]; o.ok += r[3]; if (r[4]) o.modes[m] = (o.modes[m] || 0) + r[4]; }
+    const worst = Object.entries(byC).filter(([id, o]) => o.bad > 0).sort((a, b) => (b[1].bad - b[1].ok * 0.5) - (a[1].bad - a[1].ok * 0.5)).slice(0, 12);
+    const phyK = keys.filter(k => PHYM.includes(k.split('|')[0])), carK = keys.filter(k => CARM.includes(k.split('|')[0]));
+    const pc = this.counts(phyK), cc = this.counts(carK);
+    const physWorst = phyK.filter(k => items[k][4] > items[k][3]).sort((a, b) => items[b][4] - items[a][4]).slice(0, 8);
+    const tname = this.type === 'all' ? 'todos los tipos' : POL_TYPES.find(t => t.m === this.type).n;
+    const stackBar = c => { const n = c.reduce((a, b) => a + b, 0) || 1; return `<div class="track">${[3, 2, 1, 0].map(l => `<span style="width:${c[l] / n * 100}%;background:${LEVELS[l].c}" title="${LEVELS[l].n}: ${c[l]}"></span>`).join('')}</div>`; };
+    $('#page').innerHTML = `<div class="page-inner stack" style="gap:22px">
+      <header class="stack" style="gap:6px"><div class="eyebrow">Progreso</div><h2>Lo que ya dominas</h2><p class="muted">La app guarda cada país por tipo de pregunta: saberte la capital de Malí no cuenta como saberte su bandera.</p></header>
+      <div class="statrow">
+        <div class="card bigstat"><span class="eyebrow">Respuestas</span><b>${nf.format(tot.n)}</b><span class="small muted">${acc} % de aciertos</span></div>
+        <div class="card bigstat"><span class="eyebrow">Racha</span><b>${STORE.streak()}</b><span class="small muted">${STORE.streak() === 1 ? 'día seguido' : 'días seguidos'} estudiando</span></div>
+        <div class="card bigstat"><span class="eyebrow">Dominados</span><b>${nf.format(dom)}</b><span class="small muted">elementos en total</span></div>
+        <div class="card bigstat"><span class="eyebrow">Días de estudio</span><b>${STORE.d.days.length}</b><span class="small muted">desde el principio</span></div>
+      </div>
+      <div class="card stack">
+        <div class="row" style="justify-content:space-between"><h3>Mapa de progreso</h3><select id="ptype" aria-label="Tipo de pregunta" style="padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel)"><option value="all">Media de los 6 tipos</option>${POL_TYPES.map(t => `<option value="${t.m}" ${this.type === t.m ? 'selected' : ''}>${t.n}</option>`).join('')}</select></div>
+        <div style="overflow:hidden"><svg id="pmap" viewBox="0 0 ${D.W} ${D.H}" style="width:100%;height:auto;display:block"></svg></div>
+        <div class="row small">${LEVELS.map(l => `<span class="pill"><span class="dot" style="background:${l.c}"></span>${l.n}</span>`).join('')}<span class="muted">Pasa el ratón por un país para ver su nivel.</span></div>
+      </div>
+      <div class="grid2">
+        <div class="card stack"><h3>Dominado por continente</h3><p class="small muted">${esc(tname)}</p><div class="bars">${bars.map(b => `<div class="barrow"><span>${b.r}</span>${stackBar(b.c)}<span class="num">${b.pct} %</span></div>`).join('')}</div></div>
+        <div class="card stack"><h3>Los países que más fallas</h3>${worst.length ? `<ul class="list">${worst.map(([id, o]) => `<li><button data-go="${id}"><span style="width:26px;flex:none;border-radius:2px;overflow:hidden;box-shadow:0 0 0 1px var(--line);display:inline-block;line-height:0">${flagSvg(id)}</span><span>${esc(nameOf(id))}<br><span class="small muted">${Object.keys(o.modes).map(m => POL_TYPES.find(t => t.m === m).n).join(' · ')}</span></span><span class="meta">${o.bad} fallos</span></button></li>`).join('')}</ul>` : '<p class="muted small">Todavía no hay fallos registrados. Empieza en la pestaña Examen.</p>'}</div>
+      </div>
+      <div class="grid2">
+        <div class="card stack"><h3>Accidentes geográficos</h3>${stackBar(pc)}<p class="small muted">${pc[3]} dominados, ${pc[2]} repasando, ${pc[1]} aprendiendo.</p>${physWorst.length ? `<div class="small"><b>Más fallados:</b> ${physWorst.map(k => { const [m, id] = k.split('|'); return esc(m === 'ps' ? 'mares de ' + nameOf(id) : (D.pitems[id] || {}).n || id); }).join(', ')}</div>` : ''}</div>
+        <div class="card stack"><h3>Cartografía</h3>${stackBar(cc)}<p class="small muted">${cc[3]} dominados, ${cc[2]} repasando, ${cc[1]} aprendiendo.</p></div>
+      </div>
+      <div class="card stack">
+        <h3>Copia de seguridad</h3>
+        <p class="small">Tu progreso se guarda en este navegador${REMOTE.ready ? ' y en tu cuenta (privado)' : ''}. Exporta un archivo JSON para no perderlo nunca o para pasarlo a otro dispositivo.</p>
+        <div class="row"><button class="btn" id="exp">Exportar progreso</button><label class="btn" style="cursor:pointer">Importar archivo<input type="file" id="impF" accept=".json,application/json" hidden></label><button class="btn" id="expTxt">Ver como texto</button></div>
+        <div id="expBox" hidden><textarea id="expTa" aria-label="Progreso en formato JSON"></textarea><div class="row" style="margin-top:6px"><button class="btn sm" id="copyTa">Copiar</button><button class="btn sm" id="impTa">Importar este texto</button></div></div>
+        <div class="sec"><h4>Reiniciar</h4><div class="row">${[['all', 'Todo'], ['pol', 'Países'], ['phy', 'Accidentes'], ['car', 'Cartografía']].map(([k, n]) => `<button class="btn sm danger" data-reset="${k}">${n}</button>`).join('')}</div>
+        ${this.confirm ? `<div class="confirm"><b>¿Borrar el progreso de ${{ all: 'todo', pol: 'países', phy: 'accidentes', car: 'cartografía' }[this.confirm]}?</b><span class="small">No se puede deshacer. Exporta antes una copia si la quieres conservar.</span><div class="row"><button class="btn sm danger" id="doReset">Sí, borrar</button><button class="btn sm" id="noReset">Cancelar</button></div></div>` : ''}</div>
+      </div>
+    </div>`;
+    this.map();
+    const P = $('#page');
+    $('#ptype').onchange = e => { this.type = e.target.value; this.render(); };
+    $$('[data-go]', P).forEach(b => b.onclick = () => { switchTab('explorar'); EXPLORE.select(b.dataset.go); });
+    const json = () => JSON.stringify(STORE.d);
+    $('#exp').onclick = async () => {
+      const fn = 'atlas-progreso-' + new Date().toISOString().slice(0, 10) + '.json';
+      try { const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null; if (dl) { await dl.save({ filename: fn, data: json() }); toast('Progreso exportado'); return; } } catch (e) { if (e && e.code === 'declined') return; }
+      if (!window.claude) { try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([json()], { type: 'application/json' })); a.download = fn; document.body.appendChild(a); a.click(); a.remove(); toast('Progreso exportado'); return; } catch (e) { } }
+      $('#expBox').hidden = false; $('#expTa').value = json(); toast('Copia el texto para guardarlo');
+    };
+    $('#expTxt').onclick = () => { $('#expBox').hidden = !$('#expBox').hidden; $('#expTa').value = json(); };
+    $('#copyTa').onclick = async () => { const ta = $('#expTa'); try { await navigator.clipboard.writeText(ta.value); toast('Copiado'); } catch (e) { ta.select(); toast('Selecciona y copia con Ctrl+C'); } };
+    const imp = txt => { try { const o = JSON.parse(txt); if (!o || !o.items) throw 0; STORE.merge(o); STORE.save(); toast('Progreso importado y combinado'); this.render(); } catch (e) { toast('El archivo no tiene un formato válido'); } };
+    $('#impTa').onclick = () => imp($('#expTa').value);
+    $('#impF').onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => imp(r.result); r.readAsText(f); };
+    $$('[data-reset]', P).forEach(b => b.onclick = () => { this.confirm = b.dataset.reset; this.render(); $('.confirm').scrollIntoView({ block: 'center' }); });
+    const dr = $('#doReset'); if (dr) dr.onclick = () => { const k = this.confirm; STORE.reset(k === 'all' ? null : (k === 'pol' ? POLM : k === 'phy' ? PHYM : CARM).map(m => m + '|')); this.confirm = null; toast('Progreso borrado'); this.render(); };
+    const nr = $('#noReset'); if (nr) nr.onclick = () => { this.confirm = null; this.render(); };
+  },
+  map() {
+    const svg = d3.select('#pmap');
+    svg.append('path').attr('d', D.ppath({ type: 'Sphere' })).attr('fill', 'var(--ocean)');
+    const feats = D.cfeat.filter(f => f.id !== 'ATA');
+    const lv = id => { const b = baseId(id); return D.info[b] && D.info[b].state ? this.lvlOf(b) : -1; };
+    svg.append('g').selectAll('path').data(feats).join('path').attr('d', D.path).attr('fill', d => { const l = lv(d.id); return l < 0 ? 'var(--panel2)' : LEVELS[l].c; }).attr('stroke', 'var(--panel)').attr('stroke-width', 0.4)
+      .append('title').text(d => { const b = baseId(d.id), l = lv(d.id); return nameOf(b) + (l >= 0 ? ': ' + LEVELS[l].n : ''); });
+    svg.append('g').selectAll('circle').data(D.tiny.filter(t => D.info[t.id] && D.info[t.id].state)).join('circle').attr('cx', d => d.x).attr('cy', d => d.y).attr('r', 3.2).attr('fill', d => LEVELS[this.lvlOf(d.id)].c).attr('stroke', 'var(--panel)').attr('stroke-width', .6).append('title').text(d => nameOf(d.id) + ': ' + LEVELS[this.lvlOf(d.id)].n);
+  }
+};
+APP.tabs.progreso = PROG;
+
+/* ============ arranque ============ */
+(async function boot() {
+  STORE.load();
+  try { await loadData(); } catch (e) { $('#loading').textContent = 'No se pudieron cargar los datos del atlas (' + e.message + '). Recarga la página.'; return; }
+  initShell(); MAP.init();
+  MAP.on('click', (id, ev, w) => { const t = APP.tabs[APP.tab]; if (t && t.click) t.click(id, ev, w); });
+  MAP.on('hover', (id, ev) => { const t = APP.tabs[APP.tab]; if (t && t.hover) t.hover(id, ev); else tooltip(null); });
+  document.addEventListener('keydown', e => { const t = APP.tabs[APP.tab]; if (t && t.key) t.key(e); });
+  APP.refresh = () => { const t = APP.tabs[APP.tab]; if (t && t.refresh) t.refresh(); };
+  $('#loading').remove();
+  const h = location.hash.slice(1);
+  switchTab(APP.tabs[h] ? h : (APP.tabs[lsGet('atlas-tab')] ? lsGet('atlas-tab') : 'explorar'));
+  REMOTE.init();
+})();
+
+</script>
+
+</body>
+</html>
