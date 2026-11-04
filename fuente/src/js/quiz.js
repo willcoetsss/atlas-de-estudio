@@ -5,7 +5,10 @@ const POL_TYPES = [
   { m: 'mapn', n: 'Mapa → nombre', d: 'Resalto un país en el mapa' },
   { m: 'mapc', n: 'Nombre → mapa', d: 'Haz clic sobre el país' },
   { m: 'flag', n: 'Bandera → país', d: 'Reconoce la bandera' },
-  { m: 'flagc', n: 'País → bandera', d: 'Elige su bandera' }];
+  { m: 'flagc', n: 'País → bandera', d: 'Elige su bandera' },
+  { m: 'sil', n: 'Silueta → país', d: 'Su forma sola, sin el mapa alrededor' }];
+// la silueta no tiene sentido en microestados ni en países sin geometría propia
+const polTypeOK = (m, id) => (m !== 'mapn' && m !== 'mapc' && m !== 'sil') || (!!D.byId[id] && (m !== 'sil' || !D.tinySet.has(id)));
 const PHY_TYPES = [
   { m: 'pn', n: 'Señalado → nombre', d: 'Resalto un accidente en el mapa' },
   { m: 'pl', n: 'Nombre → señalar', d: 'Haz clic donde está' },
@@ -36,12 +39,12 @@ const QUIZ = {
   st: null,
   defaults() {
     return {
-      pol: { types: ['cap', 'capc', 'mapn', 'mapc', 'flag', 'flagc'], regs: [], mode: 'mc', limited: true, review: false },
-      phy: { types: ['pn', 'pl', 'ps'], groups: PHY_GROUPS.map(g => g.k), diff: 1, regs: [], mode: 'mc', review: false },
-      car: { types: CAR_TYPES.map(t => t.m), review: false, regs: [], mode: 'mc' }
+      pol: { types: ['cap', 'capc', 'mapn', 'mapc', 'flag', 'flagc', 'sil'], regs: [], mode: 'mc', limited: true, review: false, auto: true },
+      phy: { types: ['pn', 'pl', 'ps'], groups: PHY_GROUPS.map(g => g.k), diff: 1, regs: [], mode: 'mc', review: false, auto: true },
+      car: { types: CAR_TYPES.map(t => t.m), review: false, regs: [], mode: 'mc', auto: true }
     };
   },
-  conf() { if (!this.st) { const s = STORE.d.set.quiz || {}; const d = this.defaults(); this.st = {}; for (const k of Object.keys(d)) this.st[k] = Object.assign({}, d[k], s[k] || {}); if (s.cat) this.cat = s.cat; } return this.st[this.cat]; },
+  conf() { if (!this.st) { const s = STORE.d.set.quiz || {}; const d = this.defaults(); this.st = {}; for (const k of Object.keys(d)) this.st[k] = Object.assign({}, d[k], s[k] || {}); if (s.cat) this.cat = s.cat; if (!STORE.d.set.silAdded) { if (!this.st.pol.types.includes('sil')) this.st.pol.types.push('sil'); STORE.d.set.silAdded = 1; } } return this.st[this.cat]; },
   saveConf() { STORE.d.set.quiz = Object.assign({}, this.st, { cat: this.cat }); STORE.saveLocal(); },
   enter() {
     this.conf();
@@ -49,9 +52,11 @@ const QUIZ = {
     this.applyMapMode();
     this.next();
   },
-  leave() { MAP.paintPolitical(); MAP.hoverEnabled = true; this.q = null; },
+  leave() { this.stopAuto(); this.silo(null); MAP.paintPolitical(); MAP.hoverEnabled = true; this.q = null; },
+  stopAuto() { clearTimeout(this._auto); this._auto = null; const b = $('#qnext'); if (b) b.classList.remove('timer'); const f = $('.fb.pausable'); if (f) { f.classList.remove('pausable'); f.removeAttribute('title'); } },
   applyMapMode() { MAP.setMode(this.cat === 'phy' ? 'physquiz' : 'political'); MAP.clearOverlays(); MAP.gLabels.selectAll('*').remove(); },
   hover() { tooltip(null); },
+  resized() { const q = this.q; if (q && q.sil && !q.done && APP.tab === 'examen') this.silo(q.id); },
   refresh() { if (this.q && !this.q.done) this.render(); },
   /* ---------- conjuntos de preguntas ---------- */
   polPool() {
@@ -60,7 +65,7 @@ const QUIZ = {
     if (!c.limited) ids = ids.filter(id => !['KOS', 'TWN', 'PSE'].includes(id));
     if (c.regs.length) ids = ids.filter(id => c.regs.includes(D.info[id].reg));
     const keys = [];
-    for (const m of c.types) for (const id of ids) { if ((m === 'mapn' || m === 'mapc') && !D.byId[id]) continue; keys.push(m + '|' + id); }
+    for (const m of c.types) for (const id of ids) { if (!polTypeOK(m, id)) continue; keys.push(m + '|' + id); }
     return keys;
   },
   phyItems() {
@@ -90,6 +95,7 @@ const QUIZ = {
   pool() { const c = this.conf(); let k = this.cat === 'pol' ? this.polPool() : this.cat === 'phy' ? this.phyPool() : this.carPool(); if (c.review) { const tmin = Math.floor(now() / 60000); k = k.filter(x => { const r = STORE.rec(x); return r && r[2] && (r[0] <= 1 || r[4] > r[3] || r[1] <= tmin); }); } return k; },
   /* ---------- siguiente pregunta ---------- */
   next() {
+    this.stopAuto(); this.silo(null);
     MAP.clearOverlays(); MAP.paintPolitical(); tooltip(null);
     if (this.cat === 'phy') MAP.cty.style('fill', null);
     const keys = this.pool();
@@ -115,6 +121,7 @@ const QUIZ = {
         if (q.m === 'capc') { q.prompt = `¿De qué país es capital <u>${esc(e.cap)}</u>?`; if (mc) q.opts = nameOpts(shuffle(regionPeers(q.id, 6)).concat(regionPeers(q.id, 20))); }
         if (q.m === 'mapn') { q.prompt = '¿Qué país está resaltado en el mapa?'; if (mc) q.opts = nameOpts(regionPeers(q.id, 5).concat(regionPeers(q.id, 20))); }
         if (q.m === 'mapc') { q.prompt = `Haz clic sobre <u>${esc(e.name)}</u> en el mapa`; q.click = true; q.mc = false; }
+        if (q.m === 'sil') { q.prompt = '¿Qué país tiene esta forma?'; q.sil = true; if (mc) { const big = x => !D.tinySet.has(x) && D.byId[x]; q.opts = nameOpts(shuffle(regionPeers(q.id, 10).filter(big)).concat(regionPeers(q.id, 40).filter(big), shuffle(D.states.filter(big)))); } }
         if (q.m === 'flag') { q.prompt = '¿De qué país es esta bandera?'; q.flag = q.id; if (mc) q.opts = nameOpts([...(e.flagSim || []).slice(0, 4), ...shuffle(regionPeers(q.id, 10))]); }
         if (q.m === 'flagc') { q.prompt = `¿Cuál es la bandera de <u>${esc(e.name)}</u>?`; const ds = pickD([...(e.flagSim || []).slice(0, 5), ...regionPeers(q.id, 8)], 3, x => I[x].iso2); q.opts = shuffle([q.id, ...ds]).map(x => ({ v: x, flag: x })); q.flagOpts = true; }
       }
@@ -156,6 +163,7 @@ const QUIZ = {
     if (q.cat === 'pol') {
       const regB = () => { const c = this.conf(); if (!c.regs.length) return null; const ids = D.states.filter(id => c.regs.includes(I[id].reg) && D.byId[id]); return boundsOf(ids.map(id => rectF(homeBounds(id)))); };
       if (q.m === 'mapn' || q.m === 'cap') { this.markCountry(q.id, 'f-q'); this.flyContext(q.id); }
+      else if (q.m === 'sil') { this.silo(q.id); MAP.home(0); }
       else if (q.m === 'mapc') { const b = regB(); b ? MAP.fit(b, { maxK: 12 }) : MAP.home(); }
       else { const b = regB(); b ? MAP.fit(b, { maxK: 12 }) : MAP.home(); }
     }
@@ -169,6 +177,16 @@ const QUIZ = {
       else if (q.m === 'cc') { const p = D.proj([q.city[1], q.city[2]]); gH.append('path').attr('class', 'grat').style('stroke', 'var(--muted)').attr('d', D.ppath(d3.geoGraticule().step([15, 15])())); gH.append('circle').attr('class', 'hl-pt').attr('cx', p[0]).attr('cy', p[1]).attr('r', 0.9); MAP.home(); }
       else MAP.home();
     }
+  },
+  /* silueta aislada: proyección azimutal equivalente centrada en el país, para que su forma no salga deformada */
+  silo(id) {
+    const el = $('#silo'); if (!id) { el.hidden = true; el.innerHTML = ''; return; }
+    const f = silFeature(id); const r = $('#mapwrap').getBoundingClientRect(); const pd = MAP.pad();
+    const W = Math.max(200, r.width), H = Math.max(160, r.height), m = Math.min(W, H) * 0.1;
+    const c = d3.geoCentroid(f);
+    const pr = d3.geoAzimuthalEqualArea().rotate([-c[0], -c[1]]).fitExtent([[m + 10, m + 14], [W - m - 52, H - m - Math.max(14, pd.b - 20)]], f);
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" aria-label="Silueta de un país"><path class="shape" d="${d3.geoPath(pr)(f)}"/></svg><span class="cap">Silueta · sin escala</span>`;
+    el.hidden = false;
   },
   markCountry(id, cls) { MAP.cty.filter(d => d.id === id || (d.properties && d.properties.kind === 'far' && d.properties.sov === id)).classed(cls, true); MAP.mk.filter(d => d.id === id).classed(cls, true).attr('display', null); },
   flyContext(id, mult = 5) { const b = homeBounds(id); const cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2; const s = Math.max(b[1][0] - b[0][0], b[1][1] - b[0][1], 30) * mult / 2; MAP.fit([[cx - s, cy - s * 0.6], [cx + s, cy + s * 0.6]], { maxK: 30 }); },
@@ -240,6 +258,7 @@ const QUIZ = {
     q.grade = g; q.box = r[0];
     this.sc.n++; if (ok) { this.sc.ok++; this.sc.streak++; this.sc.best = Math.max(this.sc.best, this.sc.streak); } else this.sc.streak = 0;
     q.extra = extra;
+    if (q.sil) this.silo(null);
     // mapa: revelar
     if (q.cat === 'pol') {
       MAP.cty.classed('f-q', false); MAP.mk.classed('f-q', false);
@@ -255,6 +274,13 @@ const QUIZ = {
       this.physLabel(q.target);
     }
     this.render();
+    // pasar sola a la siguiente: tocar la respuesta ya basta
+    if (this.conf().auto !== false) {
+      const dur = ok ? 1400 : (q.click || q.sil ? 3200 : 2800);
+      const b = $('#qnext'); if (b) { b.style.setProperty('--dur', dur + 'ms'); b.classList.add('timer'); }
+      const fb = $('.fb.ok, .fb.bad'); if (fb) { fb.classList.add('pausable'); fb.title = 'Toca para quedarte en esta pregunta'; fb.onclick = () => this.stopAuto(); }
+      this._auto = setTimeout(() => { this._auto = null; if (this.q === q && APP.tab === 'examen') this.next(); }, dur);
+    }
   },
   skip() { const q = this.q; if (!q || q.done) return; this.finish(false, 'Pregunta saltada.'); },
   key(e) {
@@ -274,14 +300,15 @@ const QUIZ = {
     if (!q) body = `<div class="card"><p><b>No hay preguntas con estos ajustes.</b></p><p class="small muted">${c.review ? 'No tienes nada pendiente de repaso aquí: desactiva «Solo repasar» o amplía la selección.' : 'Marca al menos un tipo de pregunta y una categoría.'}</p></div>`;
     else {
       let ans = '';
-      if (q.flagOpts) ans = `<div class="opts flags">${q.opts.map((o, i) => `<button class="opt flagopt ${q.done ? (o.v === q.correctV ? 'ok' : o.v === q.chosen ? 'bad' : '') : ''}" data-v="${o.v}" ${q.done ? 'disabled' : ''} aria-label="Opción ${i + 1}"><div class="flagbox">${flagSvg(o.v)}</div>${q.done ? `<div class="small" style="margin-top:4px">${esc(nameOf(o.v))}</div>` : ''}</button>`).join('')}</div>`;
-      else if (q.mc) ans = `<div class="opts">${q.opts.map((o, i) => `<button class="opt ${q.done ? (o.v === q.correctV ? 'ok' : o.v === q.chosen ? 'bad' : '') : ''}" data-v="${esc(o.v)}" ${q.done ? 'disabled' : ''}><span class="k">${i + 1}</span>${esc(o.t)}</button>`).join('')}</div>`;
+      const fresh = q.done ? '' : ' fresh';
+      if (q.flagOpts) ans = `<div class="opts flags${fresh}">${q.opts.map((o, i) => `<button class="opt flagopt ${q.done ? (o.v === q.correctV ? 'ok' : o.v === q.chosen ? 'bad' : '') : ''}" data-v="${o.v}" ${q.done ? 'disabled' : ''} aria-label="Opción ${i + 1}"><div class="flagbox">${flagSvg(o.v)}</div>${q.done ? `<div class="small" style="margin-top:4px">${esc(nameOf(o.v))}</div>` : ''}</button>`).join('')}</div>`;
+      else if (q.mc) ans = `<div class="opts${fresh}">${q.opts.map((o, i) => `<button class="opt ${q.done ? (o.v === q.correctV ? 'ok' : o.v === q.chosen ? 'bad' : '') : ''}" data-v="${esc(o.v)}" ${q.done ? 'disabled' : ''}><span class="k">${i + 1}</span>${esc(o.t)}</button>`).join('')}</div>`;
       else if (q.click) ans = q.done ? '' : `<p class="muted small">Puedes acercar el mapa antes de hacer clic.</p>`;
       else ans = `<form class="answer-in" id="qform"><input id="qin" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe ${q.label === 'capital' ? 'la capital' : 'el nombre'}…" ${q.done ? 'disabled' : ''} aria-label="Respuesta"><button class="btn primary" ${q.done ? 'disabled' : ''}>Responder</button></form>`;
       let fb = '';
       if (q.done) {
         const verdict = q.ok ? (q.grade === 3 ? '¡Correcto y rápido!' : q.grade === 1 ? 'Correcto, con ayuda o algo lento.' : '¡Correcto!') : 'No es correcto.';
-        const right = q.cat === 'pol' ? (q.m === 'cap' ? `La capital de ${esc(D.info[q.id].name)} es <b>${esc(D.info[q.id].cap)}</b>.` : `Es <b>${esc(D.info[q.id].name)}</b>${q.m === 'capc' || q.m === 'flag' || q.m === 'flagc' ? ` (capital: ${esc(D.info[q.id].cap)})` : ''}.`) : `Respuesta: <b>${esc(q.answer)}</b>.`;
+        const right = q.cat === 'pol' ? (q.m === 'cap' ? `La capital de ${esc(D.info[q.id].name)} es <b>${esc(D.info[q.id].cap)}</b>.` : `Es <b>${esc(D.info[q.id].name)}</b>${q.m === 'capc' || q.m === 'flag' || q.m === 'flagc' || q.m === 'sil' ? ` (capital: ${esc(D.info[q.id].cap)})` : ''}.`) : `Respuesta: <b>${esc(q.answer)}</b>.`;
         const more = q.cat === 'car' && q.m !== 'cl' && q.m !== 'cc' ? `<div class="small" style="margin-top:4px">${esc(PROJS.find(p => p.id === q.id).n)}: ${esc(PROJS.find(p => p.id === q.id).keeps)}</div>` : '';
         const nextIn = q.box != null ? `<div class="small muted" style="margin-top:4px">Nivel: ${LEVELS[STORE.level(q.key)].n}${q.ok ? ` · volverá dentro de ${fmtIv(INTERVALS_MIN[q.box] * (q.grade === 1 ? 0.4 : 1))}` : ' · volverá pronto'}</div>` : '';
         fb = `<div class="fb ${q.ok ? 'ok' : 'bad'}"><b>${verdict}</b> ${q.extra || ''} ${right}${more}${nextIn}</div>`;
@@ -315,6 +342,7 @@ const QUIZ = {
     if (this.cat === 'phy') h += `<fieldset><legend>Accidentes</legend><div class="chips">${PHY_GROUPS.map(g => `<button class="chip" data-grp="${g.k}" aria-pressed="${c.groups.includes(g.k)}">${g.n}</button>`).join('')}</div></fieldset>
       <fieldset><legend>Dificultad</legend><div class="seg">${DIFF.map(d => `<button data-diff="${d.k}" aria-pressed="${c.diff === d.k}">${d.n}</button>`).join('')}</div></fieldset>` + regChips + modeSeg;
     h += `<label class="toggle"><input type="checkbox" id="qrev" ${c.review ? 'checked' : ''}>Solo repasar lo pendiente y lo que más fallo</label>`;
+    h += `<label class="toggle"><input type="checkbox" id="qauto" ${c.auto !== false ? 'checked' : ''}>Pasar sola a la siguiente pregunta al responder</label>`;
     const n = this.pool().length;
     h += `<p class="small muted">${n} preguntas posibles con estos ajustes. Lo nuevo y lo fallado sale a menudo; lo que dominas, de vez en cuando.</p>`;
     return h;
@@ -328,8 +356,8 @@ const QUIZ = {
     const nx = $('#qnext', B); if (nx) { nx.onclick = () => this.next(); if (!isMobile()) nx.focus(); }
     const hi = $('#qhint', B); if (hi) hi.onclick = () => this.giveHint();
     const sk = $('#qskip', B); if (sk) sk.onclick = () => this.skip();
-    const inf = $('#qinfo', B); if (inf) inf.onclick = () => { switchTab('explorar'); EXPLORE.select(this.q.id); };
-    const det = $('#qset', B); if (det) det.ontoggle = () => { STORE.d.set.qsetOpen = det.open; STORE.saveLocal(); };
+    const inf = $('#qinfo', B); if (inf) inf.onclick = () => { this.stopAuto(); switchTab('explorar'); EXPLORE.select(this.q.id); };
+    const det = $('#qset', B); if (det) det.ontoggle = () => { if (det.open) this.stopAuto(); STORE.d.set.qsetOpen = det.open; STORE.saveLocal(); };
     $$('[data-type]', B).forEach(i => i.onchange = () => { c.types = $$('[data-type]', B).filter(x => x.checked).map(x => x.dataset.type); changed(); });
     $$('[data-reg]', B).forEach(b => b.onclick = () => { const r = b.dataset.reg; if (!r) c.regs = []; else c.regs = c.regs.includes(r) ? c.regs.filter(x => x !== r) : [...c.regs, r]; changed(); });
     $$('[data-mode]', B).forEach(b => b.onclick = () => { c.mode = b.dataset.mode; changed(); });
@@ -337,8 +365,25 @@ const QUIZ = {
     $$('[data-diff]', B).forEach(b => b.onclick = () => { c.diff = +b.dataset.diff; changed(); });
     const lim = $('#qlim', B); if (lim) lim.onchange = () => { c.limited = lim.checked; changed(); };
     const rv = $('#qrev', B); if (rv) rv.onchange = () => { c.review = rv.checked; changed(); };
+    const au = $('#qauto', B); if (au) au.onchange = () => { c.auto = au.checked; this.saveConf(); if (!au.checked) this.stopAuto(); };
+    // el resaltado al pasar el ratón solo se activa cuando el ratón se mueve de verdad sobre las opciones nuevas
+    $$('.opts.fresh', B).forEach(o => o.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') o.classList.remove('fresh'); }, { once: true }));
   }
 };
+function silFeature(id) {
+  // partes principales del país (sin islas lejanas y diminutas), devueltas a lon/lat
+  const f = D.byId[id]; const g = f.geometry;
+  let polys = g.type === 'MultiPolygon' ? g.coordinates : [g.coordinates];
+  if (polys.length > 1) {
+    const info = polys.map(c => { const p = { type: 'Polygon', coordinates: c }; return { c, a: D.path.area(p), m: D.path.centroid(p) }; });
+    const big = info.reduce((a, b) => a.a > b.a ? a : b);
+    polys = info.filter(q => q.a > big.a * 0.02 || Math.hypot(q.m[0] - big.m[0], q.m[1] - big.m[1]) < 60).map(q => q.c);
+  }
+  const inv = ring => ring.map(p => D.proj.invert(p));
+  const out = { type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: polys.map(p => p.map(inv)) } };
+  if (d3.geoArea(out) > 2 * Math.PI) out.geometry.coordinates = out.geometry.coordinates.map(p => p.map(r => r.slice().reverse()));
+  return out;
+}
 function rectF(b) { return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[b[0], [b[0][0], b[1][1]], b[1], [b[1][0], b[0][1]], b[0]]] } }; }
 function fmtIv(min) { if (min < 60) return Math.max(1, Math.round(min)) + ' min'; if (min < 60 * 24) return Math.round(min / 60) + ' h'; const d = Math.round(min / 1440); return d + (d === 1 ? ' día' : ' días'); }
 const FEM = ['cordillera', 'península', 'isla', 'meseta', 'llanura', 'cuenca', 'tundra', 'bahía', 'laguna', 'depresión'];

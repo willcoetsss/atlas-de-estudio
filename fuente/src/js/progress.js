@@ -6,17 +6,17 @@ const PROG = {
   refresh() { if (APP.tab === 'progreso') this.render(); },
   lvlOf(id) {
     if (this.type !== 'all') return STORE.level(this.type + '|' + id);
-    const ls = POLM.map(m => STORE.level(m + '|' + id)); if (ls.every(l => l === 0)) return 0;
+    const ls = POLM.filter(m => polTypeOK(m, id)).map(m => STORE.level(m + '|' + id)); if (ls.every(l => l === 0)) return 0;
     return Math.round(ls.reduce((a, b) => a + b, 0) / ls.length) || 1;
   },
   counts(keys) { const c = [0, 0, 0, 0]; keys.forEach(k => c[STORE.level(k)]++); return c; },
   render() {
     const items = STORE.d.items; const keys = Object.keys(items);
     const tot = STORE.d.tot; const acc = tot.n ? Math.round(tot.ok / tot.n * 100) : 0;
-    const polKeys = D.states.flatMap(id => (this.type === 'all' ? POLM : [this.type]).map(m => m + '|' + id));
+    const polKeys = D.states.flatMap(id => (this.type === 'all' ? POLM : [this.type]).filter(m => polTypeOK(m, id)).map(m => m + '|' + id));
     const dom = keys.filter(k => STORE.level(k) === 3).length;
     // barras por región
-    const bars = REGIONS.map(r => { const ids = D.states.filter(id => D.info[id].reg === r); const ks = ids.flatMap(id => (this.type === 'all' ? POLM : [this.type]).map(m => m + '|' + id)); const c = this.counts(ks); const n = ks.length; return { r, c, n, pct: n ? Math.round(c[3] / n * 100) : 0 }; });
+    const bars = REGIONS.map(r => { const ids = D.states.filter(id => D.info[id].reg === r); const ks = ids.flatMap(id => (this.type === 'all' ? POLM : [this.type]).filter(m => polTypeOK(m, id)).map(m => m + '|' + id)); const c = this.counts(ks); const n = ks.length; return { r, c, n, pct: n ? Math.round(c[3] / n * 100) : 0 }; });
     // más fallados
     const byC = {}; for (const [k, r] of Object.entries(items)) { const [m, id] = k.split('|'); if (!POLM.includes(m)) continue; const o = byC[id] = byC[id] || { bad: 0, ok: 0, modes: {} }; o.bad += r[4]; o.ok += r[3]; if (r[4]) o.modes[m] = (o.modes[m] || 0) + r[4]; }
     const worst = Object.entries(byC).filter(([id, o]) => o.bad > 0).sort((a, b) => (b[1].bad - b[1].ok * 0.5) - (a[1].bad - a[1].ok * 0.5)).slice(0, 12);
@@ -34,7 +34,7 @@ const PROG = {
         <div class="card bigstat"><span class="eyebrow">Días de estudio</span><b>${STORE.d.days.length}</b><span class="small muted">desde el principio</span></div>
       </div>
       <div class="card stack">
-        <div class="row" style="justify-content:space-between"><h3>Mapa de progreso</h3><select id="ptype" aria-label="Tipo de pregunta" style="padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel)"><option value="all">Media de los 6 tipos</option>${POL_TYPES.map(t => `<option value="${t.m}" ${this.type === t.m ? 'selected' : ''}>${t.n}</option>`).join('')}</select></div>
+        <div class="row" style="justify-content:space-between"><h3>Mapa de progreso</h3><select id="ptype" aria-label="Tipo de pregunta" style="padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel)"><option value="all">Media de todos los tipos</option>${POL_TYPES.map(t => `<option value="${t.m}" ${this.type === t.m ? 'selected' : ''}>${t.n}</option>`).join('')}</select></div>
         <div style="overflow:hidden"><svg id="pmap" viewBox="0 0 ${D.W} ${D.H}" style="width:100%;height:auto;display:block"></svg></div>
         <div class="row small">${LEVELS.map(l => `<span class="pill"><span class="dot" style="background:${l.c}"></span>${l.n}</span>`).join('')}<span class="muted">Pasa el ratón por un país para ver su nivel.</span></div>
       </div>
@@ -47,6 +47,11 @@ const PROG = {
         <div class="card stack"><h3>Cartografía</h3>${stackBar(cc)}<p class="small muted">${cc[3]} dominados, ${cc[2]} repasando, ${cc[1]} aprendiendo.</p></div>
       </div>
       <div class="card stack">
+        <h3>Apariencia</h3>
+        <div class="seg" role="group" aria-label="Tema">${[['', 'Automático'], ['light', 'Claro'], ['dark', 'Oscuro']].map(([v, n]) => `<button data-theme-set="${v}" aria-pressed="${(lsGet('atlas-theme') || '') === v}">${n}</button>`).join('')}</div>
+        <p class="small muted">Automático sigue el modo claro u oscuro de tu móvil u ordenador.</p>
+      </div>
+      <div class="card stack">
         <h3>Copia de seguridad</h3>
         <p class="small">Tu progreso se guarda en este navegador${REMOTE.ready ? ' y en tu cuenta (privado)' : ''}. Exporta un archivo JSON para no perderlo nunca o para pasarlo a otro dispositivo.</p>
         <div class="row"><button class="btn" id="exp">Exportar progreso</button><label class="btn" style="cursor:pointer">Importar archivo<input type="file" id="impF" accept=".json,application/json" hidden></label><button class="btn" id="expTxt">Ver como texto</button></div>
@@ -57,6 +62,7 @@ const PROG = {
     </div>`;
     this.map();
     const P = $('#page');
+    $$('[data-theme-set]', P).forEach(b => b.onclick = () => { setTheme(b.dataset.themeSet || null); this.render(); });
     $('#ptype').onchange = e => { this.type = e.target.value; this.render(); };
     $$('[data-go]', P).forEach(b => b.onclick = () => { switchTab('explorar'); EXPLORE.select(b.dataset.go); });
     const json = () => JSON.stringify(STORE.d);

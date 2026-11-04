@@ -62,10 +62,10 @@
   --water-label:#9cc8ea; --range-label:#e8b98d; --region-label:#e0b48a; --peak:#f0e2d2;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.35); --logo-filter:invert(1); color-scheme:dark}
 html,body{height:100%}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;overflow:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;overflow:hidden}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:50;background:var(--panel)}
 button,input,select{font:inherit;color:inherit}
-button{cursor:pointer}
+button{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .app{display:grid;grid-template-rows:var(--bar-h) 1fr;height:100%}
 /* barra superior */
@@ -77,8 +77,9 @@ button{cursor:pointer}
 .brand small{font-family:var(--f-mono);font-size:10.5px;font-weight:400;color:var(--muted);letter-spacing:.06em}
 .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1}
 .tabs::-webkit-scrollbar{display:none}
-.tab{border:0;background:none;padding:8px 13px;border-radius:8px;color:var(--muted);font-weight:500;white-space:nowrap}
-.tab:hover{background:var(--panel2);color:var(--ink)}
+.tab{border:0;background:none;padding:8px 13px;border-radius:8px;color:var(--muted);font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab .ti{display:none;flex:none}
+@media (hover:hover){.tab:hover{background:var(--panel2);color:var(--ink)}}
 .tab[aria-selected="true"]{background:var(--accent-soft);color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
 .bar-right{display:flex;gap:8px;align-items:center}
 .iconbtn{border:1px solid var(--line);background:var(--panel);border-radius:8px;width:34px;height:34px;display:grid;place-items:center;color:var(--muted)}
@@ -94,6 +95,9 @@ button{cursor:pointer}
 .sheet-handle{display:none}
 .main.nopanel{grid-template-columns:1fr}
 .main.nopanel .panel{display:none}
+.panel-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.xbtn{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 11px 4px 9px;font-size:13.5px;color:var(--muted);display:inline-flex;gap:5px;align-items:center;white-space:nowrap}
+@media (hover:hover){.xbtn:hover{color:var(--ink);background:var(--panel2)}}
 .mapctl .ptog[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 /* aviso para girar el móvil */
 .rotate{display:none}
@@ -114,15 +118,20 @@ button{cursor:pointer}
 .sugg button:hover,.sugg button.on{background:var(--accent-soft)}
 .sugg img{width:26px;height:18px;object-fit:contain;filter:drop-shadow(0 0 .6px rgba(0,0,0,.5))}
 .sugg small{color:var(--muted);margin-left:auto}
-.legend{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);font-size:13.5px;max-width:300px}
-.legend summary{padding:8px 12px;cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.legend{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);font-size:13.5px;max-width:300px;max-height:calc(100% - 70px);overflow-y:auto;overscroll-behavior:contain}
+.legend summary{padding:8px 12px;cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px;position:sticky;top:0;background:var(--panel);z-index:1;border-radius:12px}
 .legend summary::-webkit-details-marker{display:none}
 .legend summary::after{content:"▾";color:var(--muted)}
-.legend[open] summary::after{content:"▴"}
+.legend[open] summary::after{content:"✕";font-size:15px;line-height:1}
 .legend .rows{padding:0 12px 10px;display:grid;gap:5px}
 .legend label{display:grid;grid-template-columns:18px 34px 1fr;align-items:center;gap:6px;cursor:pointer}
 .legend svg{display:block}
 .legend .note{color:var(--muted);font-size:12px;line-height:1.35;margin-top:2px}
+.silo{position:absolute;inset:0;z-index:3;background:var(--panel2);display:grid;place-items:center;transition:opacity .35s}
+.silo[hidden]{display:none}
+.silo svg{width:100%;height:100%;display:block}
+.silo .shape{fill:var(--ink);fill-opacity:.88;stroke:var(--ink);stroke-width:1px;stroke-linejoin:round}
+.silo .cap{position:absolute;left:14px;bottom:10px;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .tooltip{position:absolute;pointer-events:none;z-index:8;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:6px 10px;font-size:13.5px;max-width:300px;line-height:1.35}
 .tooltip b{display:block}
 .toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:7px 14px;border-radius:999px;font-size:14px;z-index:9;box-shadow:var(--shadow)}
@@ -183,12 +192,16 @@ h3{font-size:18px;font-weight:700}
 .stack{display:grid;gap:12px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .btn{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:8px 14px;font-weight:500}
-.btn:hover{background:var(--panel2)}
+@media (hover:hover){.btn:hover{background:var(--panel2)}}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
-.btn.primary:hover{filter:brightness(1.08)}
+@media (hover:hover){.btn.primary:hover{filter:brightness(1.08)}}
 .btn.danger{color:var(--bad);border-color:var(--bad)}
 .btn.sm{padding:5px 10px;font-size:14px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.timer{position:relative;overflow:hidden}
+.btn.timer::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--accent-ink);opacity:.55;transform-origin:left;animation:tbar var(--dur,2s) linear forwards}
+@keyframes tbar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.fb.pausable{cursor:pointer}
 .chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 11px;font-size:14px;white-space:nowrap}
 .chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 a.chip{color:var(--ink);text-decoration:none}
@@ -208,7 +221,7 @@ a.chip:hover{background:var(--panel2)}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
 .list{display:grid;gap:2px;margin:0;padding:0;list-style:none}
 .list button,.list .li{display:flex;gap:8px;align-items:baseline;width:100%;text-align:left;border:0;background:none;padding:5px 6px;border-radius:7px;min-width:0}
-.list button:hover{background:var(--panel2)}
+@media (hover:hover){.list button:hover{background:var(--panel2)}}
 .list .meta{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap;font-family:var(--f-mono)}
 .swatch-line{width:30px;height:10px;flex:none}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
@@ -221,7 +234,8 @@ a.chip:hover{background:var(--panel2)}
 .qflag{display:block}
 .opts{display:grid;gap:8px}
 .opt{display:flex;gap:10px;align-items:center;text-align:left;border:1.5px solid var(--line);background:var(--panel);border-radius:11px;padding:11px 13px;font-size:16.5px;font-weight:500}
-.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+@media (hover:hover){.opts:not(.fresh) .opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}}
+.opt:active:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
 .opt .k{font-family:var(--f-mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px}
 .opt.ok{border-color:var(--ok);background:var(--ok-soft)}
 .opt.bad{border-color:var(--bad);background:var(--bad-soft)}
@@ -242,6 +256,7 @@ a.chip:hover{background:var(--panel2)}
 .setup{display:grid;gap:14px}
 .setup fieldset{border:0;padding:0;margin:0;display:grid;gap:7px}
 .setup legend{font-family:var(--f-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;padding:0}
+.stack>.seg{justify-self:start}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .seg button{border:0;background:var(--panel);padding:7px 13px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
@@ -295,50 +310,56 @@ textarea{width:100%;min-height:120px;font-family:var(--f-mono);font-size:12px;bo
   .barrow{grid-template-columns:110px 1fr 44px}
   .qprompt{font-size:21px}
 }
-/* móvil en horizontal: barra compacta, mapa a la izquierda y panel lateral plegable */
+/* móvil en horizontal: pestañas en una columna a la izquierda (lejos del borde superior, que el navegador usa para sus barras) y panel lateral plegable */
 @media (max-height:540px) and (orientation:landscape){
-  :root{--bar-h:42px;--panel-w:min(42vw,360px)}
+  :root{--panel-w:min(42vw,360px);--rail-w:calc(66px + env(safe-area-inset-left,0px))}
   body{font-size:14.5px}
-  .bar{gap:8px;padding-left:max(10px,env(safe-area-inset-left,0px))}
-  .brand{font-size:15.5px}
-  .brand .logo{height:32px}
-  .brand small,.sync{display:none}
-  .tab{padding:4px 9px;font-size:14px}
-  .iconbtn{width:30px;height:30px}
+  .app{grid-template-columns:var(--rail-w) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+  .bar{flex-direction:column;align-items:stretch;gap:4px;border-bottom:0;border-right:1px solid var(--line);padding:max(6px,env(safe-area-inset-top,0px)) 4px max(6px,env(safe-area-inset-bottom,0px)) calc(4px + env(safe-area-inset-left,0px));overflow-y:auto;scrollbar-width:none}
+  .bar::-webkit-scrollbar{display:none}
+  .brand{justify-content:center;padding:2px 0 4px}
+  .brand .logo{height:36px}
+  .brand .bname,.brand small,.bar-right{display:none}
+  .tabs{flex-direction:column;flex:none;overflow:visible;gap:3px}
+  .tab{flex-direction:column;justify-content:center;gap:3px;padding:7px 2px 6px;min-height:50px;font-size:11px;line-height:1.1;letter-spacing:.01em;border-radius:10px}
+  .tab .ti{display:block;width:21px;height:21px}
+  .tab[aria-selected="true"]{box-shadow:inset 3px 0 0 var(--accent)}
   .panel{padding-block:10px 16px;padding-left:14px;padding-right:max(12px,env(safe-area-inset-right,0px))}
   .stack{gap:9px}
   h2{font-size:21px}
   .qprompt{font-size:18px}
   .qcard{gap:9px}
   .opts{grid-template-columns:1fr 1fr;gap:6px}
-  .opt{padding:7px 9px;font-size:14.5px}
+  .opt{padding:9px 9px;font-size:14.5px;min-height:44px}
   .opts.flags{grid-template-columns:1fr 1fr}
   .facts{font-size:14px}
-  .searchbox{top:8px;left:calc(8px + env(safe-area-inset-left,0px));width:min(230px,45%)}
+  .searchbox{top:8px;left:8px;width:min(230px,45%)}
   .searchbox input{padding:6px 10px 6px 30px}
   .searchbox svg{top:8px;left:10px}
   .mapctl{top:8px;right:8px;gap:4px}
-  .mapctl button{width:30px;height:30px;font-size:16px}
-  .legend{font-size:12.5px;max-width:230px;bottom:8px;left:calc(8px + env(safe-area-inset-left,0px))}
-  .legend summary{padding:5px 10px}
+  .main.nopanel .mapctl{right:calc(8px + env(safe-area-inset-right,0px))}
+  .mapctl button{width:34px;height:34px;font-size:17px}
+  .legend{font-size:12.5px;max-width:240px;bottom:8px;left:8px;max-height:calc(100% - 56px)}
+  .legend summary{padding:8px 12px}
+  .legend label{min-height:26px}
   .split{grid-template-columns:1fr}
   .barrow{grid-template-columns:110px 1fr 44px}
-  .page-inner{padding-block:14px 40px}
+  .page-inner{padding-block:14px 40px;padding-left:16px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
 <div class="app" id="app">
   <header class="bar">
-    <div class="brand"><span class="logo" aria-hidden="true"><img src="icons/logo-512.png" alt=""></span>Atlas de Estudio <small>EQUAL EARTH · NATURAL EARTH</small></div>
+    <div class="brand"><span class="logo" aria-hidden="true"><img src="icons/logo-512.png" alt=""></span><span class="bname">Atlas de Estudio</span> <small>EQUAL EARTH · NATURAL EARTH</small></div>
     <nav class="tabs" role="tablist" aria-label="Secciones">
-      <button class="tab" role="tab" data-tab="explorar" aria-selected="true">Explorar</button>
-      <button class="tab" role="tab" data-tab="examen">Examen</button>
-      <button class="tab" role="tab" data-tab="fisico">Físico</button>
-      <button class="tab" role="tab" data-tab="cartografia">Cartografía</button>
-      <button class="tab" role="tab" data-tab="progreso">Progreso</button>
+      <button class="tab" role="tab" data-tab="explorar" aria-selected="true"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg><span>Explorar</span></button>
+      <button class="tab" role="tab" data-tab="examen"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m8 12 3 3 5-6"/></svg><span>Examen</span></button>
+      <button class="tab" role="tab" data-tab="fisico"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="m2 20 7-12 4 6 3-4 6 10z"/></svg><span>Físico</span></button>
+      <button class="tab" role="tab" data-tab="cartografia"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.5 3.5 14.5 0 18M12 3c-3.5 3.5-3.5 14.5 0 18"/></svg><span>Cartografía</span></button>
+      <button class="tab" role="tab" data-tab="progreso"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg><span>Progreso</span></button>
     </nav>
-    <div class="bar-right"><span class="sync" id="sync"></span><button class="iconbtn" id="themeBtn" title="Cambiar tema" aria-label="Cambiar tema"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button></div>
+    <div class="bar-right"><span class="sync" id="sync"></span></div>
   </header>
   <div class="main" id="main">
     <div class="mapwrap" id="mapwrap">
@@ -354,7 +375,8 @@ textarea{width:100%;min-height:120px;font-family:var(--f-mono);font-size:12px;bo
         <button id="ptog" class="ptog" title="Mostrar u ocultar el panel" aria-label="Mostrar u ocultar el panel" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg></button>
         <button id="zhome" title="Ver el mundo" aria-label="Ver el mundo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg></button>
       </div>
-      <details class="legend" id="legend" open></details>
+      <div class="silo" id="silo" hidden></div>
+      <details class="legend" id="legend"></details>
       <div class="tooltip" id="tip" hidden></div>
       <div class="toast" id="toast" hidden></div>
     </div>
@@ -434,7 +456,8 @@ async function loadData() {
   // bounding boxes y diminutos
   D.bbox = {}; D.tiny = [];
   for (const f of D.cfeat) { const b = D.path.bounds(f); D.bbox[f.id] = b; const diag = Math.hypot(b[1][0] - b[0][0], b[1][1] - b[0][1]); f.diag = diag; }
-  for (const f of D.cfeat) { if (f.diag < 7 && f.id !== 'ATA') { const i = info[f.id]; const lab = i && i.lab ? D.proj([i.lab[0], i.lab[1]]) : D.path.centroid(largestPoly(f)); D.tiny.push({ id: f.id, x: lab[0], y: lab[1], diag: f.diag }); } }
+  D.tinySet = new Set();
+  for (const f of D.cfeat) { if (f.diag < 7 && f.id !== 'ATA') { const i = info[f.id]; const lab = i && i.lab ? D.proj([i.lab[0], i.lab[1]]) : D.path.centroid(largestPoly(f)); D.tiny.push({ id: f.id, x: lab[0], y: lab[1], diag: f.diag }); D.tinySet.add(f.id); } }
   // índice de nombres para búsqueda
   D.searchIdx = Object.entries(info).filter(([id, e]) => !id.includes('-') || true).map(([id, e]) => ({ id, name: e.name, n: norm(e.name), alts: uniq((e.alts || []).map(norm)) }));
   // físico
@@ -623,6 +646,7 @@ const MAP = {
     this.fitK = Math.min(this.vw / D.W, this.vh / D.H) * 0.98;
     this.zoom.scaleExtent([this.fitK * 0.8, this.fitK * 120]).translateExtent([[-D.W * 0.25, -D.H * 0.35], [D.W * 1.25, D.H * 1.35]]);
     if (first) this.home(0);
+    this.emit('resize');
   },
   pad() { const m = isSheet(); const p = $('#panel'); const bottom = m && !p.hidden && !p.classList.contains('collapsed') ? p.getBoundingClientRect().height : 0; return { t: m ? 60 : 56, r: 54, b: bottom + 20, l: 20 }; },
   fit(b, { dur = 750, maxK = 60, minK = 1 } = {}) {
@@ -678,6 +702,7 @@ const MAP = {
     for (const o of items) {
       const d = o.d; const sx = t.applyX(d.x), sy = t.applyY(d.y);
       if (sx < -50 || sx > vw + 50 || sy < -30 || sy > vh + 30) continue;
+      if (opts.hide && opts.hide(d)) continue;
       const fs = base * (d.em || 1); const w = (d.w || d.text.length * 0.56 * (d.ls ? 1 + d.ls * 1.6 : 1)) * fs, hgt = fs * (d.lines || 1.2);
       let bx;
       if (d.a && Math.abs(d.a) > 8) { const ang = d.a * Math.PI / 180, c = Math.abs(Math.cos(ang)), s = Math.abs(Math.sin(ang)); const W2 = w * c + hgt * s, H2 = w * s + hgt * c; bx = [sx - W2 / 2, sy - H2 / 2, sx + W2 / 2, sy + H2 / 2]; }
@@ -714,8 +739,19 @@ function switchTab(name) {
   try { if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name); } catch (e) { }
   setTimeout(() => MAP.resize(), 30);
 }
+function applyTheme(v) { if (v) document.documentElement.setAttribute('data-theme', v); else document.documentElement.removeAttribute('data-theme'); }
+function setTheme(v) { applyTheme(v); try { if (v) localStorage.setItem('atlas-theme', v); else localStorage.removeItem('atlas-theme'); } catch (e) { } }
 function initShell() {
-  $$('.tab').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+  // en táctil se cambia de pestaña al levantar el dedo, aunque se haya movido un poco (antes se perdían toques)
+  $$('.tab').forEach(b => {
+    b.onclick = () => switchTab(b.dataset.tab);
+    let p0 = null;
+    b.addEventListener('pointerdown', e => { p0 = e.pointerType === 'mouse' ? null : [e.clientX, e.clientY]; });
+    b.addEventListener('pointerup', e => { if (p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) < 24) switchTab(b.dataset.tab); p0 = null; });
+  });
+  // leyenda: abrir y cerrar a mano (más fiable que el comportamiento nativo de <details> en Safari)
+  const lg = $('#legend');
+  lg.addEventListener('click', e => { if (e.target.closest('summary')) { e.preventDefault(); lg.open = !lg.open; } });
   $('#handle').onclick = () => $('#panel').classList.toggle('collapsed');
   const ptog = $('#ptog');
   const syncTog = () => ptog.setAttribute('aria-pressed', isSheet() ? $('#panel').classList.contains('collapsed') : $('#main').classList.contains('nopanel'));
@@ -726,10 +762,7 @@ function initShell() {
   const fs = $('#fsLand');
   if (document.fullscreenEnabled && screen.orientation && screen.orientation.lock) fs.hidden = false;
   fs.onclick = async () => { try { await document.documentElement.requestFullscreen(); await screen.orientation.lock('landscape'); } catch (e) { toast('Tu navegador no deja girar la pantalla: gira el móvil a mano'); } };
-  const th = $('#themeBtn');
-  const applyTheme = v => { if (v) document.documentElement.setAttribute('data-theme', v); else document.documentElement.removeAttribute('data-theme'); };
   applyTheme(lsGet('atlas-theme'));
-  th.onclick = () => { const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); const nx = cur === 'dark' ? 'light' : 'dark'; applyTheme(nx); lsSet('atlas-theme', nx); };
   window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (APP.tabs[h]) switchTab(h); });
   // buscador
   const inp = $('#search'), sg = $('#sugg'); let hits = [], cur = 0;
@@ -791,14 +824,20 @@ const EXPLORE = {
     this.lab = MAP.gLabels.selectAll('text.lbl-cty').data(data).join('text').attr('class', 'lbl lbl-cty').attr('x', d => d.x).attr('y', d => d.y).attr('font-size', d => d.em + 'em').text(d => d.text);
     MAP.gLabels.attr('display', this.o.labels ? null : 'none');
   },
-  layout() { if (this.lab) MAP.layoutLabels(this.lab); if (this.cityLab) MAP.layoutLabels(this.cityLab, { always: d => d.cap }); },
+  layout() { if (this.lab) MAP.layoutLabels(this.lab, { hide: d => d.id === this.sel }); if (this.cityLab) MAP.layoutLabels(this.cityLab, { always: d => d.cap }); },
   hover(id, ev) {
     if (!id) return tooltip(null);
     const e = D.info[id]; if (!e) return tooltip(null);
     const sov = e.kind === 'far' || e.kind === 'territory' ? `<span class="muted small">${e.kind === 'far' ? 'Parte de' : 'Territorio de'} ${esc(nameOf(e.sov))}</span>` : `<span class="muted small">${esc(e.reg || '')}</span>`;
     tooltip(`<b>${esc(e.name)}</b>${sov}`, ev);
   },
-  click(id) { if (!id) return; const f = D.byId[id]; const p = f && f.properties || {}; this.select(p.kind === 'far' ? p.sov : id, true); },
+  click(id) {
+    // con la leyenda abierta en el móvil, tocar el mapa solo la cierra
+    const lg = $('#legend'); if (isMobile() && lg.open) { lg.open = false; return; }
+    if (!id) { if (this.sel) this.deselect(); return; }
+    const f = D.byId[id]; const p = f && f.properties || {}; this.select(p.kind === 'far' ? p.sov : id, true); },
+  deselect() { this.sel = null; this.openDispute = null; tooltip(null); this.intro(); this.draw(); this.layout(); },
+  key(e) { if (e.key === 'Escape' && this.sel && !(e.target && e.target.tagName === 'INPUT')) this.deselect(); },
   select(id, fly = true) {
     if (!D.info[id]) return;
     this.sel = id; this.openDispute = null; this.panel(); this.draw(); if (fly) this.fly();
@@ -856,7 +895,7 @@ const EXPLORE = {
     const n = D.states.length;
     setPanel(`<div class="stack">
       <div class="eyebrow">Explorar</div><h2>Elige cualquier país</h2>
-      <p>Haz clic en el mapa o búscalo arriba. Verás su ficha completa y, sobre el mapa, sus territorios lejanos, zonas en disputa, cambios de frontera recientes y antiguas colonias.</p>
+      <p>Toca un país en el mapa o búscalo arriba. Para quitar la selección, toca el mar o el botón «Quitar». Verás su ficha completa y, sobre el mapa, sus territorios lejanos, zonas en disputa, cambios de frontera recientes y antiguas colonias.</p>
       <p class="muted small">${n} Estados (193 de la ONU, más Ciudad del Vaticano, Palestina, Kosovo y Taiwán) y unos 50 territorios. Los países diminutos tienen un círculo para poder pulsarlos.</p>
       <div class="sec"><h4>Prueba con</h4><div class="chips">${['DNK', 'ESP', 'GBR', 'FRA', 'IND', 'UKR', 'MAR', 'ISR', 'CHN', 'ARG'].map(c => `<button class="chip" data-go="${c}">${esc(nameOf(c))}</button>`).join('')}</div></div>
     </div>`);
@@ -865,8 +904,8 @@ const EXPLORE = {
   panel() {
     const id = this.sel, e = D.info[id]; if (!e) return;
     const isState = !!e.state, o = this.o;
-    const lvls = ['cap', 'capc', 'mapn', 'mapc', 'flag', 'flagc'].map(m => STORE.level(m + '|' + id));
-    const mast = isState && lvls.some(l => l > 0) ? `<div class="sec"><h4>Tu progreso con este país</h4><ul class="list">${lvls.map((l, i) => `<li><div class="li"><span class="dot" style="background:${LEVELS[l].c};margin-top:6px"></span><span>${POL_TYPES[i].n}</span><span class="meta">${LEVELS[l].n}</span></div></li>`).join('')}</ul></div>` : '';
+    const ptypes = POL_TYPES.filter(t => polTypeOK(t.m, id)); const lvls = ptypes.map(t => STORE.level(t.m + '|' + id));
+    const mast = isState && lvls.some(l => l > 0) ? `<div class="sec"><h4>Tu progreso con este país</h4><ul class="list">${lvls.map((l, i) => `<li><div class="li"><span class="dot" style="background:${LEVELS[l].c};margin-top:6px"></span><span>${ptypes[i].n}</span><span class="meta">${LEVELS[l].n}</span></div></li>`).join('')}</ul></div>` : '';
     const facts = [];
     if (e.cap) facts.push(['Capital', esc(e.cap) + (e.capn ? `<br><span class="muted small">${esc(e.capn)}</span>` : '')]);
     if (e.pop != null) facts.push(['Población', fmtPop(e.pop)]);
@@ -885,7 +924,7 @@ const EXPLORE = {
     const nbs = (e.borders || []).filter(b => D.info[b]).map(b => `<button class="chip" data-go="${b}">${esc(nameOf(b))}</button>`).join('');
     const dItem = d => `<li><button data-disp="${d.id}"><span class="dot" style="background:var(--dispute-${d.nivel === 'rojo' ? 'red' : 'orange'})"></span><span>${esc(d.name)}</span><span class="meta">${d.parties.filter(p => p !== id).map(nameOf).slice(0, 2).join(', ')}</span></button>${this.openDispute === d.id ? `<div class="card small" style="margin:4px 0 8px;display:grid;gap:6px"><div><b>Países implicados:</b> ${d.parties.map(p => D.info[p] ? `<button class="linkbtn" data-go="${p}">${esc(nameOf(p))}</button>` : esc(p)).join(', ')}</div><div><b>Control de facto:</b> ${esc(d.control)}</div><div>${esc(d.why)}</div></div>` : ''}</li>`;
     setPanel(`<div class="stack">
-      <div class="eyebrow">${esc(isState ? [e.reg, e.state && D.info[id].kind !== 'state' ? '' : ''].filter(Boolean).join(' · ') : (e.kind === 'far' ? 'Parte lejana de un país' : 'Territorio'))}</div>
+      <div class="panel-top"><div class="eyebrow">${esc(isState ? (e.reg || '') : (e.kind === 'far' ? 'Parte lejana de un país' : 'Territorio'))}</div><button class="xbtn" id="desel" title="Quitar la selección (Esc)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>Quitar</button></div>
       <div><h2>${esc(e.name)}</h2>${e.off && e.off !== e.name ? `<div class="muted small">${esc(e.off)}</div>` : ''}</div>
       ${flagBox(id, isLandPhone() ? 90 : 140, "flag-big")}
       ${sov}
@@ -909,6 +948,7 @@ const EXPLORE = {
       <p class="muted small">Datos políticos y de conflictos con referencia a ${REF_DATE}. Lo marcado con <span class="chk">verificar</span> puede haber cambiado.</p>
     </div>`);
     const body = $('#panelBody');
+    $('#desel', body).onclick = () => this.deselect();
     $$('[data-go]', body).forEach(b => b.onclick = () => { const t = b.dataset.go; const f = D.byId[t]; if (f && f.properties && f.properties.kind === 'far') { MAP.fit(D.bbox[t], { maxK: 40 }); } else this.select(t); });
     $$('[data-city]', body).forEach(b => b.onclick = () => { const c = e.cities[+b.dataset.city]; const p = D.proj([c[1], c[2]]); MAP.fit([[p[0] - 4, p[1] - 3], [p[0] + 4, p[1] + 3]], { maxK: 30 }); });
     $$('[data-disp]', body).forEach(b => b.onclick = () => { const d = D.special.disputes.find(x => x.id === b.dataset.disp); this.openDispute = this.openDispute === d.id ? null : d.id; this.panel(); if (this.openDispute) { if (!o.disp && !o.allDisp) { o.disp = true; this.legend(); this.draw(); } MAP.fit(boundsOf(d.geo.map(geoRef)), { maxK: 40 }); } });
@@ -1318,7 +1358,10 @@ const POL_TYPES = [
   { m: 'mapn', n: 'Mapa → nombre', d: 'Resalto un país en el mapa' },
   { m: 'mapc', n: 'Nombre → mapa', d: 'Haz clic sobre el país' },
   { m: 'flag', n: 'Bandera → país', d: 'Reconoce la bandera' },
-  { m: 'flagc', n: 'País → bandera', d: 'Elige su bandera' }];
+  { m: 'flagc', n: 'País → bandera', d: 'Elige su bandera' },
+  { m: 'sil', n: 'Silueta → país', d: 'Su forma sola, sin el mapa alrededor' }];
+// la silueta no tiene sentido en microestados ni en países sin geometría propia
+const polTypeOK = (m, id) => (m !== 'mapn' && m !== 'mapc' && m !== 'sil') || (!!D.byId[id] && (m !== 'sil' || !D.tinySet.has(id)));
 const PHY_TYPES = [
   { m: 'pn', n: 'Señalado → nombre', d: 'Resalto un accidente en el mapa' },
   { m: 'pl', n: 'Nombre → señalar', d: 'Haz clic donde está' },
@@ -1349,12 +1392,12 @@ const QUIZ = {
   st: null,
   defaults() {
     return {
-      pol: { types: ['cap', 'capc', 'mapn', 'mapc', 'flag', 'flagc'], regs: [], mode: 'mc', limited: true, review: false },
-      phy: { types: ['pn', 'pl', 'ps'], groups: PHY_GROUPS.map(g => g.k), diff: 1, regs: [], mode: 'mc', review: false },
-      car: { types: CAR_TYPES.map(t => t.m), review: false, regs: [], mode: 'mc' }
+      pol: { types: ['cap', 'capc', 'mapn', 'mapc', 'flag', 'flagc', 'sil'], regs: [], mode: 'mc', limited: true, review: false, auto: true },
+      phy: { types: ['pn', 'pl', 'ps'], groups: PHY_GROUPS.map(g => g.k), diff: 1, regs: [], mode: 'mc', review: false, auto: true },
+      car: { types: CAR_TYPES.map(t => t.m), review: false, regs: [], mode: 'mc', auto: true }
     };
   },
-  conf() { if (!this.st) { const s = STORE.d.set.quiz || {}; const d = this.defaults(); this.st = {}; for (const k of Object.keys(d)) this.st[k] = Object.assign({}, d[k], s[k] || {}); if (s.cat) this.cat = s.cat; } return this.st[this.cat]; },
+  conf() { if (!this.st) { const s = STORE.d.set.quiz || {}; const d = this.defaults(); this.st = {}; for (const k of Object.keys(d)) this.st[k] = Object.assign({}, d[k], s[k] || {}); if (s.cat) this.cat = s.cat; if (!STORE.d.set.silAdded) { if (!this.st.pol.types.includes('sil')) this.st.pol.types.push('sil'); STORE.d.set.silAdded = 1; } } return this.st[this.cat]; },
   saveConf() { STORE.d.set.quiz = Object.assign({}, this.st, { cat: this.cat }); STORE.saveLocal(); },
   enter() {
     this.conf();
@@ -1362,9 +1405,11 @@ const QUIZ = {
     this.applyMapMode();
     this.next();
   },
-  leave() { MAP.paintPolitical(); MAP.hoverEnabled = true; this.q = null; },
+  leave() { this.stopAuto(); this.silo(null); MAP.paintPolitical(); MAP.hoverEnabled = true; this.q = null; },
+  stopAuto() { clearTimeout(this._auto); this._auto = null; const b = $('#qnext'); if (b) b.classList.remove('timer'); const f = $('.fb.pausable'); if (f) { f.classList.remove('pausable'); f.removeAttribute('title'); } },
   applyMapMode() { MAP.setMode(this.cat === 'phy' ? 'physquiz' : 'political'); MAP.clearOverlays(); MAP.gLabels.selectAll('*').remove(); },
   hover() { tooltip(null); },
+  resized() { const q = this.q; if (q && q.sil && !q.done && APP.tab === 'examen') this.silo(q.id); },
   refresh() { if (this.q && !this.q.done) this.render(); },
   /* ---------- conjuntos de preguntas ---------- */
   polPool() {
@@ -1373,7 +1418,7 @@ const QUIZ = {
     if (!c.limited) ids = ids.filter(id => !['KOS', 'TWN', 'PSE'].includes(id));
     if (c.regs.length) ids = ids.filter(id => c.regs.includes(D.info[id].reg));
     const keys = [];
-    for (const m of c.types) for (const id of ids) { if ((m === 'mapn' || m === 'mapc') && !D.byId[id]) continue; keys.push(m + '|' + id); }
+    for (const m of c.types) for (const id of ids) { if (!polTypeOK(m, id)) continue; keys.push(m + '|' + id); }
     return keys;
   },
   phyItems() {
@@ -1403,6 +1448,7 @@ const QUIZ = {
   pool() { const c = this.conf(); let k = this.cat === 'pol' ? this.polPool() : this.cat === 'phy' ? this.phyPool() : this.carPool(); if (c.review) { const tmin = Math.floor(now() / 60000); k = k.filter(x => { const r = STORE.rec(x); return r && r[2] && (r[0] <= 1 || r[4] > r[3] || r[1] <= tmin); }); } return k; },
   /* ---------- siguiente pregunta ---------- */
   next() {
+    this.stopAuto(); this.silo(null);
     MAP.clearOverlays(); MAP.paintPolitical(); tooltip(null);
     if (this.cat === 'phy') MAP.cty.style('fill', null);
     const keys = this.pool();
@@ -1428,6 +1474,7 @@ const QUIZ = {
         if (q.m === 'capc') { q.prompt = `¿De qué país es capital <u>${esc(e.cap)}</u>?`; if (mc) q.opts = nameOpts(shuffle(regionPeers(q.id, 6)).concat(regionPeers(q.id, 20))); }
         if (q.m === 'mapn') { q.prompt = '¿Qué país está resaltado en el mapa?'; if (mc) q.opts = nameOpts(regionPeers(q.id, 5).concat(regionPeers(q.id, 20))); }
         if (q.m === 'mapc') { q.prompt = `Haz clic sobre <u>${esc(e.name)}</u> en el mapa`; q.click = true; q.mc = false; }
+        if (q.m === 'sil') { q.prompt = '¿Qué país tiene esta forma?'; q.sil = true; if (mc) { const big = x => !D.tinySet.has(x) && D.byId[x]; q.opts = nameOpts(shuffle(regionPeers(q.id, 10).filter(big)).concat(regionPeers(q.id, 40).filter(big), shuffle(D.states.filter(big)))); } }
         if (q.m === 'flag') { q.prompt = '¿De qué país es esta bandera?'; q.flag = q.id; if (mc) q.opts = nameOpts([...(e.flagSim || []).slice(0, 4), ...shuffle(regionPeers(q.id, 10))]); }
         if (q.m === 'flagc') { q.prompt = `¿Cuál es la bandera de <u>${esc(e.name)}</u>?`; const ds = pickD([...(e.flagSim || []).slice(0, 5), ...regionPeers(q.id, 8)], 3, x => I[x].iso2); q.opts = shuffle([q.id, ...ds]).map(x => ({ v: x, flag: x })); q.flagOpts = true; }
       }
@@ -1469,6 +1516,7 @@ const QUIZ = {
     if (q.cat === 'pol') {
       const regB = () => { const c = this.conf(); if (!c.regs.length) return null; const ids = D.states.filter(id => c.regs.includes(I[id].reg) && D.byId[id]); return boundsOf(ids.map(id => rectF(homeBounds(id)))); };
       if (q.m === 'mapn' || q.m === 'cap') { this.markCountry(q.id, 'f-q'); this.flyContext(q.id); }
+      else if (q.m === 'sil') { this.silo(q.id); MAP.home(0); }
       else if (q.m === 'mapc') { const b = regB(); b ? MAP.fit(b, { maxK: 12 }) : MAP.home(); }
       else { const b = regB(); b ? MAP.fit(b, { maxK: 12 }) : MAP.home(); }
     }
@@ -1482,6 +1530,16 @@ const QUIZ = {
       else if (q.m === 'cc') { const p = D.proj([q.city[1], q.city[2]]); gH.append('path').attr('class', 'grat').style('stroke', 'var(--muted)').attr('d', D.ppath(d3.geoGraticule().step([15, 15])())); gH.append('circle').attr('class', 'hl-pt').attr('cx', p[0]).attr('cy', p[1]).attr('r', 0.9); MAP.home(); }
       else MAP.home();
     }
+  },
+  /* silueta aislada: proyección azimutal equivalente centrada en el país, para que su forma no salga deformada */
+  silo(id) {
+    const el = $('#silo'); if (!id) { el.hidden = true; el.innerHTML = ''; return; }
+    const f = silFeature(id); const r = $('#mapwrap').getBoundingClientRect(); const pd = MAP.pad();
+    const W = Math.max(200, r.width), H = Math.max(160, r.height), m = Math.min(W, H) * 0.1;
+    const c = d3.geoCentroid(f);
+    const pr = d3.geoAzimuthalEqualArea().rotate([-c[0], -c[1]]).fitExtent([[m + 10, m + 14], [W - m - 52, H - m - Math.max(14, pd.b - 20)]], f);
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" aria-label="Silueta de un país"><path class="shape" d="${d3.geoPath(pr)(f)}"/></svg><span class="cap">Silueta · sin escala</span>`;
+    el.hidden = false;
   },
   markCountry(id, cls) { MAP.cty.filter(d => d.id === id || (d.properties && d.properties.kind === 'far' && d.properties.sov === id)).classed(cls, true); MAP.mk.filter(d => d.id === id).classed(cls, true).attr('display', null); },
   flyContext(id, mult = 5) { const b = homeBounds(id); const cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2; const s = Math.max(b[1][0] - b[0][0], b[1][1] - b[0][1], 30) * mult / 2; MAP.fit([[cx - s, cy - s * 0.6], [cx + s, cy + s * 0.6]], { maxK: 30 }); },
@@ -1553,6 +1611,7 @@ const QUIZ = {
     q.grade = g; q.box = r[0];
     this.sc.n++; if (ok) { this.sc.ok++; this.sc.streak++; this.sc.best = Math.max(this.sc.best, this.sc.streak); } else this.sc.streak = 0;
     q.extra = extra;
+    if (q.sil) this.silo(null);
     // mapa: revelar
     if (q.cat === 'pol') {
       MAP.cty.classed('f-q', false); MAP.mk.classed('f-q', false);
@@ -1568,6 +1627,13 @@ const QUIZ = {
       this.physLabel(q.target);
     }
     this.render();
+    // pasar sola a la siguiente: tocar la respuesta ya basta
+    if (this.conf().auto !== false) {
+      const dur = ok ? 1400 : (q.click || q.sil ? 3200 : 2800);
+      const b = $('#qnext'); if (b) { b.style.setProperty('--dur', dur + 'ms'); b.classList.add('timer'); }
+      const fb = $('.fb.ok, .fb.bad'); if (fb) { fb.classList.add('pausable'); fb.title = 'Toca para quedarte en esta pregunta'; fb.onclick = () => this.stopAuto(); }
+      this._auto = setTimeout(() => { this._auto = null; if (this.q === q && APP.tab === 'examen') this.next(); }, dur);
+    }
   },
   skip() { const q = this.q; if (!q || q.done) return; this.finish(false, 'Pregunta saltada.'); },
   key(e) {
@@ -1587,14 +1653,15 @@ const QUIZ = {
     if (!q) body = `<div class="card"><p><b>No hay preguntas con estos ajustes.</b></p><p class="small muted">${c.review ? 'No tienes nada pendiente de repaso aquí: desactiva «Solo repasar» o amplía la selección.' : 'Marca al menos un tipo de pregunta y una categoría.'}</p></div>`;
     else {
       let ans = '';
-      if (q.flagOpts) ans = `<div class="opts flags">${q.opts.map((o, i) => `<button class="opt flagopt ${q.done ? (o.v === q.correctV ? 'ok' : o.v === q.chosen ? 'bad' : '') : ''}" data-v="${o.v}" ${q.done ? 'disabled' : ''} aria-label="Opción ${i + 1}"><div class="flagbox">${flagSvg(o.v)}</div>${q.done ? `<div class="small" style="margin-top:4px">${esc(nameOf(o.v))}</div>` : ''}</button>`).join('')}</div>`;
-      else if (q.mc) ans = `<div class="opts">${q.opts.map((o, i) => `<button class="opt ${q.done ? (o.v === q.correctV ? 'ok' : o.v === q.chosen ? 'bad' : '') : ''}" data-v="${esc(o.v)}" ${q.done ? 'disabled' : ''}><span class="k">${i + 1}</span>${esc(o.t)}</button>`).join('')}</div>`;
+      const fresh = q.done ? '' : ' fresh';
+      if (q.flagOpts) ans = `<div class="opts flags${fresh}">${q.opts.map((o, i) => `<button class="opt flagopt ${q.done ? (o.v === q.correctV ? 'ok' : o.v === q.chosen ? 'bad' : '') : ''}" data-v="${o.v}" ${q.done ? 'disabled' : ''} aria-label="Opción ${i + 1}"><div class="flagbox">${flagSvg(o.v)}</div>${q.done ? `<div class="small" style="margin-top:4px">${esc(nameOf(o.v))}</div>` : ''}</button>`).join('')}</div>`;
+      else if (q.mc) ans = `<div class="opts${fresh}">${q.opts.map((o, i) => `<button class="opt ${q.done ? (o.v === q.correctV ? 'ok' : o.v === q.chosen ? 'bad' : '') : ''}" data-v="${esc(o.v)}" ${q.done ? 'disabled' : ''}><span class="k">${i + 1}</span>${esc(o.t)}</button>`).join('')}</div>`;
       else if (q.click) ans = q.done ? '' : `<p class="muted small">Puedes acercar el mapa antes de hacer clic.</p>`;
       else ans = `<form class="answer-in" id="qform"><input id="qin" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe ${q.label === 'capital' ? 'la capital' : 'el nombre'}…" ${q.done ? 'disabled' : ''} aria-label="Respuesta"><button class="btn primary" ${q.done ? 'disabled' : ''}>Responder</button></form>`;
       let fb = '';
       if (q.done) {
         const verdict = q.ok ? (q.grade === 3 ? '¡Correcto y rápido!' : q.grade === 1 ? 'Correcto, con ayuda o algo lento.' : '¡Correcto!') : 'No es correcto.';
-        const right = q.cat === 'pol' ? (q.m === 'cap' ? `La capital de ${esc(D.info[q.id].name)} es <b>${esc(D.info[q.id].cap)}</b>.` : `Es <b>${esc(D.info[q.id].name)}</b>${q.m === 'capc' || q.m === 'flag' || q.m === 'flagc' ? ` (capital: ${esc(D.info[q.id].cap)})` : ''}.`) : `Respuesta: <b>${esc(q.answer)}</b>.`;
+        const right = q.cat === 'pol' ? (q.m === 'cap' ? `La capital de ${esc(D.info[q.id].name)} es <b>${esc(D.info[q.id].cap)}</b>.` : `Es <b>${esc(D.info[q.id].name)}</b>${q.m === 'capc' || q.m === 'flag' || q.m === 'flagc' || q.m === 'sil' ? ` (capital: ${esc(D.info[q.id].cap)})` : ''}.`) : `Respuesta: <b>${esc(q.answer)}</b>.`;
         const more = q.cat === 'car' && q.m !== 'cl' && q.m !== 'cc' ? `<div class="small" style="margin-top:4px">${esc(PROJS.find(p => p.id === q.id).n)}: ${esc(PROJS.find(p => p.id === q.id).keeps)}</div>` : '';
         const nextIn = q.box != null ? `<div class="small muted" style="margin-top:4px">Nivel: ${LEVELS[STORE.level(q.key)].n}${q.ok ? ` · volverá dentro de ${fmtIv(INTERVALS_MIN[q.box] * (q.grade === 1 ? 0.4 : 1))}` : ' · volverá pronto'}</div>` : '';
         fb = `<div class="fb ${q.ok ? 'ok' : 'bad'}"><b>${verdict}</b> ${q.extra || ''} ${right}${more}${nextIn}</div>`;
@@ -1628,6 +1695,7 @@ const QUIZ = {
     if (this.cat === 'phy') h += `<fieldset><legend>Accidentes</legend><div class="chips">${PHY_GROUPS.map(g => `<button class="chip" data-grp="${g.k}" aria-pressed="${c.groups.includes(g.k)}">${g.n}</button>`).join('')}</div></fieldset>
       <fieldset><legend>Dificultad</legend><div class="seg">${DIFF.map(d => `<button data-diff="${d.k}" aria-pressed="${c.diff === d.k}">${d.n}</button>`).join('')}</div></fieldset>` + regChips + modeSeg;
     h += `<label class="toggle"><input type="checkbox" id="qrev" ${c.review ? 'checked' : ''}>Solo repasar lo pendiente y lo que más fallo</label>`;
+    h += `<label class="toggle"><input type="checkbox" id="qauto" ${c.auto !== false ? 'checked' : ''}>Pasar sola a la siguiente pregunta al responder</label>`;
     const n = this.pool().length;
     h += `<p class="small muted">${n} preguntas posibles con estos ajustes. Lo nuevo y lo fallado sale a menudo; lo que dominas, de vez en cuando.</p>`;
     return h;
@@ -1641,8 +1709,8 @@ const QUIZ = {
     const nx = $('#qnext', B); if (nx) { nx.onclick = () => this.next(); if (!isMobile()) nx.focus(); }
     const hi = $('#qhint', B); if (hi) hi.onclick = () => this.giveHint();
     const sk = $('#qskip', B); if (sk) sk.onclick = () => this.skip();
-    const inf = $('#qinfo', B); if (inf) inf.onclick = () => { switchTab('explorar'); EXPLORE.select(this.q.id); };
-    const det = $('#qset', B); if (det) det.ontoggle = () => { STORE.d.set.qsetOpen = det.open; STORE.saveLocal(); };
+    const inf = $('#qinfo', B); if (inf) inf.onclick = () => { this.stopAuto(); switchTab('explorar'); EXPLORE.select(this.q.id); };
+    const det = $('#qset', B); if (det) det.ontoggle = () => { if (det.open) this.stopAuto(); STORE.d.set.qsetOpen = det.open; STORE.saveLocal(); };
     $$('[data-type]', B).forEach(i => i.onchange = () => { c.types = $$('[data-type]', B).filter(x => x.checked).map(x => x.dataset.type); changed(); });
     $$('[data-reg]', B).forEach(b => b.onclick = () => { const r = b.dataset.reg; if (!r) c.regs = []; else c.regs = c.regs.includes(r) ? c.regs.filter(x => x !== r) : [...c.regs, r]; changed(); });
     $$('[data-mode]', B).forEach(b => b.onclick = () => { c.mode = b.dataset.mode; changed(); });
@@ -1650,8 +1718,25 @@ const QUIZ = {
     $$('[data-diff]', B).forEach(b => b.onclick = () => { c.diff = +b.dataset.diff; changed(); });
     const lim = $('#qlim', B); if (lim) lim.onchange = () => { c.limited = lim.checked; changed(); };
     const rv = $('#qrev', B); if (rv) rv.onchange = () => { c.review = rv.checked; changed(); };
+    const au = $('#qauto', B); if (au) au.onchange = () => { c.auto = au.checked; this.saveConf(); if (!au.checked) this.stopAuto(); };
+    // el resaltado al pasar el ratón solo se activa cuando el ratón se mueve de verdad sobre las opciones nuevas
+    $$('.opts.fresh', B).forEach(o => o.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') o.classList.remove('fresh'); }, { once: true }));
   }
 };
+function silFeature(id) {
+  // partes principales del país (sin islas lejanas y diminutas), devueltas a lon/lat
+  const f = D.byId[id]; const g = f.geometry;
+  let polys = g.type === 'MultiPolygon' ? g.coordinates : [g.coordinates];
+  if (polys.length > 1) {
+    const info = polys.map(c => { const p = { type: 'Polygon', coordinates: c }; return { c, a: D.path.area(p), m: D.path.centroid(p) }; });
+    const big = info.reduce((a, b) => a.a > b.a ? a : b);
+    polys = info.filter(q => q.a > big.a * 0.02 || Math.hypot(q.m[0] - big.m[0], q.m[1] - big.m[1]) < 60).map(q => q.c);
+  }
+  const inv = ring => ring.map(p => D.proj.invert(p));
+  const out = { type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: polys.map(p => p.map(inv)) } };
+  if (d3.geoArea(out) > 2 * Math.PI) out.geometry.coordinates = out.geometry.coordinates.map(p => p.map(r => r.slice().reverse()));
+  return out;
+}
 function rectF(b) { return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[b[0], [b[0][0], b[1][1]], b[1], [b[1][0], b[0][1]], b[0]]] } }; }
 function fmtIv(min) { if (min < 60) return Math.max(1, Math.round(min)) + ' min'; if (min < 60 * 24) return Math.round(min / 60) + ' h'; const d = Math.round(min / 1440); return d + (d === 1 ? ' día' : ' días'); }
 const FEM = ['cordillera', 'península', 'isla', 'meseta', 'llanura', 'cuenca', 'tundra', 'bahía', 'laguna', 'depresión'];
@@ -1793,17 +1878,17 @@ const PROG = {
   refresh() { if (APP.tab === 'progreso') this.render(); },
   lvlOf(id) {
     if (this.type !== 'all') return STORE.level(this.type + '|' + id);
-    const ls = POLM.map(m => STORE.level(m + '|' + id)); if (ls.every(l => l === 0)) return 0;
+    const ls = POLM.filter(m => polTypeOK(m, id)).map(m => STORE.level(m + '|' + id)); if (ls.every(l => l === 0)) return 0;
     return Math.round(ls.reduce((a, b) => a + b, 0) / ls.length) || 1;
   },
   counts(keys) { const c = [0, 0, 0, 0]; keys.forEach(k => c[STORE.level(k)]++); return c; },
   render() {
     const items = STORE.d.items; const keys = Object.keys(items);
     const tot = STORE.d.tot; const acc = tot.n ? Math.round(tot.ok / tot.n * 100) : 0;
-    const polKeys = D.states.flatMap(id => (this.type === 'all' ? POLM : [this.type]).map(m => m + '|' + id));
+    const polKeys = D.states.flatMap(id => (this.type === 'all' ? POLM : [this.type]).filter(m => polTypeOK(m, id)).map(m => m + '|' + id));
     const dom = keys.filter(k => STORE.level(k) === 3).length;
     // barras por región
-    const bars = REGIONS.map(r => { const ids = D.states.filter(id => D.info[id].reg === r); const ks = ids.flatMap(id => (this.type === 'all' ? POLM : [this.type]).map(m => m + '|' + id)); const c = this.counts(ks); const n = ks.length; return { r, c, n, pct: n ? Math.round(c[3] / n * 100) : 0 }; });
+    const bars = REGIONS.map(r => { const ids = D.states.filter(id => D.info[id].reg === r); const ks = ids.flatMap(id => (this.type === 'all' ? POLM : [this.type]).filter(m => polTypeOK(m, id)).map(m => m + '|' + id)); const c = this.counts(ks); const n = ks.length; return { r, c, n, pct: n ? Math.round(c[3] / n * 100) : 0 }; });
     // más fallados
     const byC = {}; for (const [k, r] of Object.entries(items)) { const [m, id] = k.split('|'); if (!POLM.includes(m)) continue; const o = byC[id] = byC[id] || { bad: 0, ok: 0, modes: {} }; o.bad += r[4]; o.ok += r[3]; if (r[4]) o.modes[m] = (o.modes[m] || 0) + r[4]; }
     const worst = Object.entries(byC).filter(([id, o]) => o.bad > 0).sort((a, b) => (b[1].bad - b[1].ok * 0.5) - (a[1].bad - a[1].ok * 0.5)).slice(0, 12);
@@ -1821,7 +1906,7 @@ const PROG = {
         <div class="card bigstat"><span class="eyebrow">Días de estudio</span><b>${STORE.d.days.length}</b><span class="small muted">desde el principio</span></div>
       </div>
       <div class="card stack">
-        <div class="row" style="justify-content:space-between"><h3>Mapa de progreso</h3><select id="ptype" aria-label="Tipo de pregunta" style="padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel)"><option value="all">Media de los 6 tipos</option>${POL_TYPES.map(t => `<option value="${t.m}" ${this.type === t.m ? 'selected' : ''}>${t.n}</option>`).join('')}</select></div>
+        <div class="row" style="justify-content:space-between"><h3>Mapa de progreso</h3><select id="ptype" aria-label="Tipo de pregunta" style="padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel)"><option value="all">Media de todos los tipos</option>${POL_TYPES.map(t => `<option value="${t.m}" ${this.type === t.m ? 'selected' : ''}>${t.n}</option>`).join('')}</select></div>
         <div style="overflow:hidden"><svg id="pmap" viewBox="0 0 ${D.W} ${D.H}" style="width:100%;height:auto;display:block"></svg></div>
         <div class="row small">${LEVELS.map(l => `<span class="pill"><span class="dot" style="background:${l.c}"></span>${l.n}</span>`).join('')}<span class="muted">Pasa el ratón por un país para ver su nivel.</span></div>
       </div>
@@ -1834,6 +1919,11 @@ const PROG = {
         <div class="card stack"><h3>Cartografía</h3>${stackBar(cc)}<p class="small muted">${cc[3]} dominados, ${cc[2]} repasando, ${cc[1]} aprendiendo.</p></div>
       </div>
       <div class="card stack">
+        <h3>Apariencia</h3>
+        <div class="seg" role="group" aria-label="Tema">${[['', 'Automático'], ['light', 'Claro'], ['dark', 'Oscuro']].map(([v, n]) => `<button data-theme-set="${v}" aria-pressed="${(lsGet('atlas-theme') || '') === v}">${n}</button>`).join('')}</div>
+        <p class="small muted">Automático sigue el modo claro u oscuro de tu móvil u ordenador.</p>
+      </div>
+      <div class="card stack">
         <h3>Copia de seguridad</h3>
         <p class="small">Tu progreso se guarda en este navegador${REMOTE.ready ? ' y en tu cuenta (privado)' : ''}. Exporta un archivo JSON para no perderlo nunca o para pasarlo a otro dispositivo.</p>
         <div class="row"><button class="btn" id="exp">Exportar progreso</button><label class="btn" style="cursor:pointer">Importar archivo<input type="file" id="impF" accept=".json,application/json" hidden></label><button class="btn" id="expTxt">Ver como texto</button></div>
@@ -1844,6 +1934,7 @@ const PROG = {
     </div>`;
     this.map();
     const P = $('#page');
+    $$('[data-theme-set]', P).forEach(b => b.onclick = () => { setTheme(b.dataset.themeSet || null); this.render(); });
     $('#ptype').onchange = e => { this.type = e.target.value; this.render(); };
     $$('[data-go]', P).forEach(b => b.onclick = () => { switchTab('explorar'); EXPLORE.select(b.dataset.go); });
     const json = () => JSON.stringify(STORE.d);
@@ -1881,6 +1972,7 @@ APP.tabs.progreso = PROG;
   initShell(); MAP.init();
   MAP.on('click', (id, ev, w) => { const t = APP.tabs[APP.tab]; if (t && t.click) t.click(id, ev, w); });
   MAP.on('hover', (id, ev) => { const t = APP.tabs[APP.tab]; if (t && t.hover) t.hover(id, ev); else tooltip(null); });
+  MAP.on('resize', () => { const t = APP.tabs[APP.tab]; if (t && t.resized) t.resized(); });
   document.addEventListener('keydown', e => { const t = APP.tabs[APP.tab]; if (t && t.key) t.key(e); });
   APP.refresh = () => { const t = APP.tabs[APP.tab]; if (t && t.refresh) t.refresh(); };
   $('#loading').remove();

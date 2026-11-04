@@ -9,12 +9,12 @@ Aplicación web para aprender geografía: países, capitales, banderas, accident
 ## Qué incluye
 
 - **Explorar**: ficha de 197 Estados y unos 50 territorios (capital, ciudades, idiomas oficiales y cooficiales, sistema político, conflictos, pasado colonial, religión, lo más famoso). Sobre el mapa: territorios lejanos, zonas en disputa, cambios de frontera desde 1990 y antiguas colonias.
-- **Examen**: países (país → capital, capital → país, mapa → nombre, nombre → mapa, bandera → país, país → bandera), accidentes geográficos y cartografía. Tipo test o respuesta escrita, con repetición espaciada.
+- **Examen**: países (país → capital, capital → país, mapa → nombre, nombre → mapa, bandera → país, país → bandera y silueta → país, con la forma del país sola, sin el mapa alrededor), accidentes geográficos y cartografía. Tipo test o respuesta escrita, con repetición espaciada. Basta con tocar la respuesta: la app corrige y pasa sola a la siguiente.
 - **Físico**: mapa con relieve sombreado, tintas hipsométricas y batimetría; mares, cordilleras, picos, ríos, lagos, penínsulas e islas.
 - **Cartografía**: coordenadas, líneas notables, husos horarios reales, círculos máximos, tipos de proyección con indicatriz de Tissot y comparador de tamaño real.
 - **Progreso**: mapa de lo que dominas, estadísticas, exportar e importar el progreso.
 
-En el móvil está pensada para usarse en horizontal: el mapa ocupa casi toda la pantalla y el panel se puede plegar con el botón del lateral. Se puede instalar como app desde el menú del navegador («Añadir a pantalla de inicio»), y entonces se abre directamente en horizontal en Android.
+En el móvil está pensada para usarse en horizontal: las pestañas van en una columna a la izquierda, el mapa ocupa el centro y el panel de la derecha se puede plegar con el botón que hay junto al zoom. Se puede instalar como app desde el menú del navegador («Añadir a pantalla de inicio»), y entonces se abre directamente en horizontal en Android.
 
 El progreso se guarda en el navegador de cada persona (localStorage). Para no perderlo, usa «Exportar progreso» en la pestaña Progreso.
 

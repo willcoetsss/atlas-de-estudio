@@ -44,14 +44,20 @@ const EXPLORE = {
     this.lab = MAP.gLabels.selectAll('text.lbl-cty').data(data).join('text').attr('class', 'lbl lbl-cty').attr('x', d => d.x).attr('y', d => d.y).attr('font-size', d => d.em + 'em').text(d => d.text);
     MAP.gLabels.attr('display', this.o.labels ? null : 'none');
   },
-  layout() { if (this.lab) MAP.layoutLabels(this.lab); if (this.cityLab) MAP.layoutLabels(this.cityLab, { always: d => d.cap }); },
+  layout() { if (this.lab) MAP.layoutLabels(this.lab, { hide: d => d.id === this.sel }); if (this.cityLab) MAP.layoutLabels(this.cityLab, { always: d => d.cap }); },
   hover(id, ev) {
     if (!id) return tooltip(null);
     const e = D.info[id]; if (!e) return tooltip(null);
     const sov = e.kind === 'far' || e.kind === 'territory' ? `<span class="muted small">${e.kind === 'far' ? 'Parte de' : 'Territorio de'} ${esc(nameOf(e.sov))}</span>` : `<span class="muted small">${esc(e.reg || '')}</span>`;
     tooltip(`<b>${esc(e.name)}</b>${sov}`, ev);
   },
-  click(id) { if (!id) return; const f = D.byId[id]; const p = f && f.properties || {}; this.select(p.kind === 'far' ? p.sov : id, true); },
+  click(id) {
+    // con la leyenda abierta en el móvil, tocar el mapa solo la cierra
+    const lg = $('#legend'); if (isMobile() && lg.open) { lg.open = false; return; }
+    if (!id) { if (this.sel) this.deselect(); return; }
+    const f = D.byId[id]; const p = f && f.properties || {}; this.select(p.kind === 'far' ? p.sov : id, true); },
+  deselect() { this.sel = null; this.openDispute = null; tooltip(null); this.intro(); this.draw(); this.layout(); },
+  key(e) { if (e.key === 'Escape' && this.sel && !(e.target && e.target.tagName === 'INPUT')) this.deselect(); },
   select(id, fly = true) {
     if (!D.info[id]) return;
     this.sel = id; this.openDispute = null; this.panel(); this.draw(); if (fly) this.fly();
@@ -109,7 +115,7 @@ const EXPLORE = {
     const n = D.states.length;
     setPanel(`<div class="stack">
       <div class="eyebrow">Explorar</div><h2>Elige cualquier país</h2>
-      <p>Haz clic en el mapa o búscalo arriba. Verás su ficha completa y, sobre el mapa, sus territorios lejanos, zonas en disputa, cambios de frontera recientes y antiguas colonias.</p>
+      <p>Toca un país en el mapa o búscalo arriba. Para quitar la selección, toca el mar o el botón «Quitar». Verás su ficha completa y, sobre el mapa, sus territorios lejanos, zonas en disputa, cambios de frontera recientes y antiguas colonias.</p>
       <p class="muted small">${n} Estados (193 de la ONU, más Ciudad del Vaticano, Palestina, Kosovo y Taiwán) y unos 50 territorios. Los países diminutos tienen un círculo para poder pulsarlos.</p>
       <div class="sec"><h4>Prueba con</h4><div class="chips">${['DNK', 'ESP', 'GBR', 'FRA', 'IND', 'UKR', 'MAR', 'ISR', 'CHN', 'ARG'].map(c => `<button class="chip" data-go="${c}">${esc(nameOf(c))}</button>`).join('')}</div></div>
     </div>`);
@@ -118,8 +124,8 @@ const EXPLORE = {
   panel() {
     const id = this.sel, e = D.info[id]; if (!e) return;
     const isState = !!e.state, o = this.o;
-    const lvls = ['cap', 'capc', 'mapn', 'mapc', 'flag', 'flagc'].map(m => STORE.level(m + '|' + id));
-    const mast = isState && lvls.some(l => l > 0) ? `<div class="sec"><h4>Tu progreso con este país</h4><ul class="list">${lvls.map((l, i) => `<li><div class="li"><span class="dot" style="background:${LEVELS[l].c};margin-top:6px"></span><span>${POL_TYPES[i].n}</span><span class="meta">${LEVELS[l].n}</span></div></li>`).join('')}</ul></div>` : '';
+    const ptypes = POL_TYPES.filter(t => polTypeOK(t.m, id)); const lvls = ptypes.map(t => STORE.level(t.m + '|' + id));
+    const mast = isState && lvls.some(l => l > 0) ? `<div class="sec"><h4>Tu progreso con este país</h4><ul class="list">${lvls.map((l, i) => `<li><div class="li"><span class="dot" style="background:${LEVELS[l].c};margin-top:6px"></span><span>${ptypes[i].n}</span><span class="meta">${LEVELS[l].n}</span></div></li>`).join('')}</ul></div>` : '';
     const facts = [];
     if (e.cap) facts.push(['Capital', esc(e.cap) + (e.capn ? `<br><span class="muted small">${esc(e.capn)}</span>` : '')]);
     if (e.pop != null) facts.push(['Población', fmtPop(e.pop)]);
@@ -138,7 +144,7 @@ const EXPLORE = {
     const nbs = (e.borders || []).filter(b => D.info[b]).map(b => `<button class="chip" data-go="${b}">${esc(nameOf(b))}</button>`).join('');
     const dItem = d => `<li><button data-disp="${d.id}"><span class="dot" style="background:var(--dispute-${d.nivel === 'rojo' ? 'red' : 'orange'})"></span><span>${esc(d.name)}</span><span class="meta">${d.parties.filter(p => p !== id).map(nameOf).slice(0, 2).join(', ')}</span></button>${this.openDispute === d.id ? `<div class="card small" style="margin:4px 0 8px;display:grid;gap:6px"><div><b>Países implicados:</b> ${d.parties.map(p => D.info[p] ? `<button class="linkbtn" data-go="${p}">${esc(nameOf(p))}</button>` : esc(p)).join(', ')}</div><div><b>Control de facto:</b> ${esc(d.control)}</div><div>${esc(d.why)}</div></div>` : ''}</li>`;
     setPanel(`<div class="stack">
-      <div class="eyebrow">${esc(isState ? [e.reg, e.state && D.info[id].kind !== 'state' ? '' : ''].filter(Boolean).join(' · ') : (e.kind === 'far' ? 'Parte lejana de un país' : 'Territorio'))}</div>
+      <div class="panel-top"><div class="eyebrow">${esc(isState ? (e.reg || '') : (e.kind === 'far' ? 'Parte lejana de un país' : 'Territorio'))}</div><button class="xbtn" id="desel" title="Quitar la selección (Esc)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>Quitar</button></div>
       <div><h2>${esc(e.name)}</h2>${e.off && e.off !== e.name ? `<div class="muted small">${esc(e.off)}</div>` : ''}</div>
       ${flagBox(id, isLandPhone() ? 90 : 140, "flag-big")}
       ${sov}
@@ -162,6 +168,7 @@ const EXPLORE = {
       <p class="muted small">Datos políticos y de conflictos con referencia a ${REF_DATE}. Lo marcado con <span class="chk">verificar</span> puede haber cambiado.</p>
     </div>`);
     const body = $('#panelBody');
+    $('#desel', body).onclick = () => this.deselect();
     $$('[data-go]', body).forEach(b => b.onclick = () => { const t = b.dataset.go; const f = D.byId[t]; if (f && f.properties && f.properties.kind === 'far') { MAP.fit(D.bbox[t], { maxK: 40 }); } else this.select(t); });
     $$('[data-city]', body).forEach(b => b.onclick = () => { const c = e.cities[+b.dataset.city]; const p = D.proj([c[1], c[2]]); MAP.fit([[p[0] - 4, p[1] - 3], [p[0] + 4, p[1] + 3]], { maxK: 30 }); });
     $$('[data-disp]', body).forEach(b => b.onclick = () => { const d = D.special.disputes.find(x => x.id === b.dataset.disp); this.openDispute = this.openDispute === d.id ? null : d.id; this.panel(); if (this.openDispute) { if (!o.disp && !o.allDisp) { o.disp = true; this.legend(); this.draw(); } MAP.fit(boundsOf(d.geo.map(geoRef)), { maxK: 40 }); } });

@@ -56,7 +56,8 @@ async function loadData() {
   // bounding boxes y diminutos
   D.bbox = {}; D.tiny = [];
   for (const f of D.cfeat) { const b = D.path.bounds(f); D.bbox[f.id] = b; const diag = Math.hypot(b[1][0] - b[0][0], b[1][1] - b[0][1]); f.diag = diag; }
-  for (const f of D.cfeat) { if (f.diag < 7 && f.id !== 'ATA') { const i = info[f.id]; const lab = i && i.lab ? D.proj([i.lab[0], i.lab[1]]) : D.path.centroid(largestPoly(f)); D.tiny.push({ id: f.id, x: lab[0], y: lab[1], diag: f.diag }); } }
+  D.tinySet = new Set();
+  for (const f of D.cfeat) { if (f.diag < 7 && f.id !== 'ATA') { const i = info[f.id]; const lab = i && i.lab ? D.proj([i.lab[0], i.lab[1]]) : D.path.centroid(largestPoly(f)); D.tiny.push({ id: f.id, x: lab[0], y: lab[1], diag: f.diag }); D.tinySet.add(f.id); } }
   // índice de nombres para búsqueda
   D.searchIdx = Object.entries(info).filter(([id, e]) => !id.includes('-') || true).map(([id, e]) => ({ id, name: e.name, n: norm(e.name), alts: uniq((e.alts || []).map(norm)) }));
   // físico
@@ -245,6 +246,7 @@ const MAP = {
     this.fitK = Math.min(this.vw / D.W, this.vh / D.H) * 0.98;
     this.zoom.scaleExtent([this.fitK * 0.8, this.fitK * 120]).translateExtent([[-D.W * 0.25, -D.H * 0.35], [D.W * 1.25, D.H * 1.35]]);
     if (first) this.home(0);
+    this.emit('resize');
   },
   pad() { const m = isSheet(); const p = $('#panel'); const bottom = m && !p.hidden && !p.classList.contains('collapsed') ? p.getBoundingClientRect().height : 0; return { t: m ? 60 : 56, r: 54, b: bottom + 20, l: 20 }; },
   fit(b, { dur = 750, maxK = 60, minK = 1 } = {}) {
@@ -300,6 +302,7 @@ const MAP = {
     for (const o of items) {
       const d = o.d; const sx = t.applyX(d.x), sy = t.applyY(d.y);
       if (sx < -50 || sx > vw + 50 || sy < -30 || sy > vh + 30) continue;
+      if (opts.hide && opts.hide(d)) continue;
       const fs = base * (d.em || 1); const w = (d.w || d.text.length * 0.56 * (d.ls ? 1 + d.ls * 1.6 : 1)) * fs, hgt = fs * (d.lines || 1.2);
       let bx;
       if (d.a && Math.abs(d.a) > 8) { const ang = d.a * Math.PI / 180, c = Math.abs(Math.cos(ang)), s = Math.abs(Math.sin(ang)); const W2 = w * c + hgt * s, H2 = w * s + hgt * c; bx = [sx - W2 / 2, sy - H2 / 2, sx + W2 / 2, sy + H2 / 2]; }
@@ -336,8 +339,19 @@ function switchTab(name) {
   try { if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name); } catch (e) { }
   setTimeout(() => MAP.resize(), 30);
 }
+function applyTheme(v) { if (v) document.documentElement.setAttribute('data-theme', v); else document.documentElement.removeAttribute('data-theme'); }
+function setTheme(v) { applyTheme(v); try { if (v) localStorage.setItem('atlas-theme', v); else localStorage.removeItem('atlas-theme'); } catch (e) { } }
 function initShell() {
-  $$('.tab').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+  // en táctil se cambia de pestaña al levantar el dedo, aunque se haya movido un poco (antes se perdían toques)
+  $$('.tab').forEach(b => {
+    b.onclick = () => switchTab(b.dataset.tab);
+    let p0 = null;
+    b.addEventListener('pointerdown', e => { p0 = e.pointerType === 'mouse' ? null : [e.clientX, e.clientY]; });
+    b.addEventListener('pointerup', e => { if (p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) < 24) switchTab(b.dataset.tab); p0 = null; });
+  });
+  // leyenda: abrir y cerrar a mano (más fiable que el comportamiento nativo de <details> en Safari)
+  const lg = $('#legend');
+  lg.addEventListener('click', e => { if (e.target.closest('summary')) { e.preventDefault(); lg.open = !lg.open; } });
   $('#handle').onclick = () => $('#panel').classList.toggle('collapsed');
   const ptog = $('#ptog');
   const syncTog = () => ptog.setAttribute('aria-pressed', isSheet() ? $('#panel').classList.contains('collapsed') : $('#main').classList.contains('nopanel'));
@@ -348,10 +362,7 @@ function initShell() {
   const fs = $('#fsLand');
   if (document.fullscreenEnabled && screen.orientation && screen.orientation.lock) fs.hidden = false;
   fs.onclick = async () => { try { await document.documentElement.requestFullscreen(); await screen.orientation.lock('landscape'); } catch (e) { toast('Tu navegador no deja girar la pantalla: gira el móvil a mano'); } };
-  const th = $('#themeBtn');
-  const applyTheme = v => { if (v) document.documentElement.setAttribute('data-theme', v); else document.documentElement.removeAttribute('data-theme'); };
   applyTheme(lsGet('atlas-theme'));
-  th.onclick = () => { const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); const nx = cur === 'dark' ? 'light' : 'dark'; applyTheme(nx); lsSet('atlas-theme', nx); };
   window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (APP.tabs[h]) switchTab(h); });
   // buscador
   const inp = $('#search'), sg = $('#sugg'); let hits = [], cur = 0;
