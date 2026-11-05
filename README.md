@@ -17,7 +17,7 @@ Aplicación web para aprender geografía: países, capitales, banderas, accident
 
 En el móvil está pensada para usarse en horizontal: las pestañas van en una columna a la izquierda, el mapa ocupa el centro y el panel de la derecha se puede plegar con el botón que hay junto al zoom. Se puede instalar como app desde el menú del navegador («Añadir a pantalla de inicio»), y entonces se abre directamente en horizontal en Android.
 
-Al acercarte a un país, el mapa cambia su contorno simplificado por uno detallado (escala 1:10m), que solo se descarga cuando hace falta. Las siluetas del examen y de Trivia usan siempre el contorno detallado.
+El mapa grande usa contornos ligeros para ir fluido en el móvil; las siluetas del examen y de Trivia usan un contorno detallado (escala 1:10m) que se descarga solo para el país que se pregunta.
 
 El progreso se guarda en el navegador de cada persona (localStorage). Para no perderlo, usa «Exportar progreso» en la pestaña Progreso.
 
@@ -36,7 +36,7 @@ y abre http://localhost:8000 en el navegador.
 ```
 index.html        la aplicación (HTML, CSS y JavaScript en un solo archivo)
 data/             datos: países, fichas, banderas, disputas, accidentes, husos
-data/hd/          contorno detallado de cada país, uno por archivo
+data/hd/          contorno detallado de cada país (escala 1:10m), para las siluetas
 relief/           imagen del relieve en teselas
 icons/            logo e iconos de la app
 manifest.webmanifest  datos para instalarla como app en el móvil

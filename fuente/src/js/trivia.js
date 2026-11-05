@@ -68,7 +68,7 @@ const arrowSvg = deg => `<svg width="18" height="18" viewBox="0 0 24 24" style="
 const _pts = {};
 function borderPts(id) {
   if (_pts[id]) return _pts[id];
-  const f = D.byId[id]; const g = HD.lo[id] || (f && f.geometry); if (!g) return (_pts[id] = []);
+  const f = D.byId[id]; const g = f && f.geometry; if (!g) return (_pts[id] = []);
   const all = []; const walk = c => typeof c[0] === 'number' ? all.push(c) : c.forEach(walk); walk(g.coordinates);
   const step = Math.max(1, Math.floor(all.length / 500));
   return (_pts[id] = all.filter((_, i) => i % step === 0).map(p => D.proj.invert(p)).filter(Boolean));

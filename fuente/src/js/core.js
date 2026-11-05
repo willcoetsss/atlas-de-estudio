@@ -102,11 +102,11 @@ function homeBounds(id) {
   return D.bbox[id];
 }
 
-/* ============ contornos detallados (1:10m) bajo demanda ============ */
-// El mapa general usa contornos simplificados. Al acercarse, cada país visible se sustituye por su
-// versión detallada (data/hd/<id>.json); al volver a la vista del mundo se recupera la ligera.
+/* ============ contornos detallados (1:10m), solo para las siluetas ============ */
+// El mapa grande usa siempre los contornos ligeros, para que vaya fluido. Las preguntas que muestran un país
+// aislado cargan su versión detallada (data/hd/<id>.json) y la guardan para la próxima vez.
 const HD = {
-  geo: {}, lo: {}, hb: {}, on: new Set(), prom: {}, IN: 2.4, OUT: 1.7,
+  geo: {}, prom: {},
   load(id) {
     if (this.geo[id]) return Promise.resolve(this.geo[id]);
     if (this.prom[id]) return this.prom[id];
@@ -114,50 +114,7 @@ const HD = {
       if (!t) return null; const f = topojson.feature(t, t.objects.c); const g = f.geometry || (f.features && f.features[0] && f.features[0].geometry); return (this.geo[id] = g || null);
     }).catch(() => null);
   },
-  set(id, hd) {
-    const f = D.byId[id]; if (!f) return false;
-    if (!this.lo[id]) this.lo[id] = f.geometry;
-    const g = hd ? this.geo[id] : this.lo[id]; if (!g || f.geometry === g) return false;
-    f.geometry = g; if (hd) this.on.add(id); else this.on.delete(id); return true;
-  },
-  visible() {
-    const x0 = MAP.t.invertX(0), x1 = MAP.t.invertX(MAP.vw), y0 = MAP.t.invertY(0), y1 = MAP.t.invertY(MAP.vh);
-    const hit = b => b && b[1][0] > x0 && b[0][0] < x1 && b[1][1] > y0 && b[0][1] < y1;
-    return D.cfeat.filter(f => { const b = D.bbox[f.id]; if (!hit(b)) return false; if (b[1][0] - b[0][0] < D.W * 0.4) return true; const h = this.hb[f.id] || (this.hb[f.id] = homeBounds(f.id)); return hit(h); }).map(f => f.id);
-  },
-  // se llama al terminar cada gesto; espera un poco por si viene otro y no trabaja mientras el mapa se mueve
-  update() { clearTimeout(this._t); this._t = setTimeout(() => this.run(), MAP.fast ? 220 : 60); },
-  async run() {
-    if (MAP._moving) return;
-    const r = MAP.rel();
-    if (r < this.OUT) return this.queue([...this.on].map(id => [id, false]));
-    if (r < this.IN) return;
-    const ids = this.visible();
-    // primero los más pequeños: llegan antes y apenas cuestan
-    await Promise.all(ids.map(id => this.load(id)));
-    if (MAP._moving || MAP.rel() < this.OUT) return;
-    this.queue(ids.filter(id => this.geo[id] && D.byId[id].geometry !== this.geo[id]).map(id => [id, true]));
-  },
-  // cambia los contornos de uno en uno, cada uno en su propio fotograma, para no bloquear la pantalla
-  queue(jobs) {
-    this.jobs = jobs; if (this._raf) return;
-    const step = () => {
-      this._raf = null; if (MAP._moving || !this.jobs.length) return;
-      const t0 = performance.now(), done = new Set();
-      while (this.jobs.length && performance.now() - t0 < 12) { const [id, hd] = this.jobs.shift(); if (this.set(id, hd)) { this.draw(id); done.add(id); } }
-      if (done.size) MAP.emit('hd', done);
-      if (this.jobs.length) this._raf = requestAnimationFrame(step);
-    };
-    this._raf = requestAnimationFrame(step);
-  },
-  draw(id) {
-    const d = D.path(D.byId[id]);
-    MAP.cty.filter(x => x.id === id).attr('d', d);
-    // contornos de resaltado que siguen a un país concreto
-    MAP.gz.selectAll(`[data-hd="${id}"]`).attr('d', d);
-  },
-  // geometría con el máximo detalle disponible, sin tocar el mapa (siluetas, juegos)
-  async best(id) { await this.load(id); return this.geo[id] || (this.lo[id] || D.byId[id].geometry); }
+  async best(id) { await this.load(id); return this.geo[id] || D.byId[id].geometry; }
 };
 
 /* ============ memoria de aprendizaje (repetición espaciada) ============ */
@@ -332,7 +289,7 @@ const MAP = {
     const r = $('#mapwrap').getBoundingClientRect(); this.vw = r.width; this.vh = r.height;
     if (this.fast) {
       // margen pintado alrededor de lo visible, para que al arrastrar o alejar no aparezcan huecos en blanco
-      const ox = this.ox = Math.round(r.width * 0.35), oy = this.oy = Math.round(r.height * 0.35), n = this.svg.node();
+      const ox = this.ox = Math.round(r.width * 0.15), oy = this.oy = Math.round(r.height * 0.15), n = this.svg.node();
       n.setAttribute('viewBox', `${-ox} ${-oy} ${r.width + 2 * ox} ${r.height + 2 * oy}`);
       Object.assign(n.style, { left: -ox + 'px', top: -oy + 'px', width: r.width + 2 * ox + 'px', height: r.height + 2 * oy + 'px', transformOrigin: `${ox}px ${oy}px` });
     }
@@ -364,7 +321,6 @@ const MAP = {
   },
   onZoomEnd() {
     if (this.mode === 'physical' || this.mode === 'physquiz') this.loadTiles();
-    HD.update();
     if (this.layoutHook) this.layoutHook();
   },
   loadTiles() {

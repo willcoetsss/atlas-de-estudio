@@ -60,7 +60,6 @@ const EXPLORE = {
   key(e) { if (e.key === 'Escape' && this.sel && !(e.target && e.target.tagName === 'INPUT')) this.deselect(); },
   select(id, fly = true) {
     if (!D.info[id]) return;
-    if (D.byId[id]) HD.load(id);
     this.sel = id; this.openDispute = null; this.panel(); this.draw(); if (fly) this.fly();
   },
   fly() {
