@@ -106,7 +106,7 @@ function homeBounds(id) {
 // El mapa general usa contornos simplificados. Al acercarse, cada país visible se sustituye por su
 // versión detallada (data/hd/<id>.json); al volver a la vista del mundo se recupera la ligera.
 const HD = {
-  geo: {}, lo: {}, on: new Set(), prom: {}, IN: 2.4, OUT: 1.7,
+  geo: {}, lo: {}, hb: {}, on: new Set(), prom: {}, IN: 2.4, OUT: 1.7,
   load(id) {
     if (this.geo[id]) return Promise.resolve(this.geo[id]);
     if (this.prom[id]) return this.prom[id];
@@ -122,24 +122,39 @@ const HD = {
   },
   visible() {
     const x0 = MAP.t.invertX(0), x1 = MAP.t.invertX(MAP.vw), y0 = MAP.t.invertY(0), y1 = MAP.t.invertY(MAP.vh);
-    return D.cfeat.filter(f => { const b = D.bbox[f.id]; return b && b[1][0] > x0 && b[0][0] < x1 && b[1][1] > y0 && b[0][1] < y1; }).map(f => f.id);
+    const hit = b => b && b[1][0] > x0 && b[0][0] < x1 && b[1][1] > y0 && b[0][1] < y1;
+    return D.cfeat.filter(f => { const b = D.bbox[f.id]; if (!hit(b)) return false; if (b[1][0] - b[0][0] < D.W * 0.4) return true; const h = this.hb[f.id] || (this.hb[f.id] = homeBounds(f.id)); return hit(h); }).map(f => f.id);
   },
-  async update() {
-    const r = MAP.rel(); const changed = new Set();
-    if (r < this.OUT) { for (const id of [...this.on]) if (this.set(id, false)) changed.add(id); return this.apply(changed); }
+  // se llama al terminar cada gesto; espera un poco por si viene otro y no trabaja mientras el mapa se mueve
+  update() { clearTimeout(this._t); this._t = setTimeout(() => this.run(), MAP.fast ? 220 : 60); },
+  async run() {
+    if (MAP._moving) return;
+    const r = MAP.rel();
+    if (r < this.OUT) return this.queue([...this.on].map(id => [id, false]));
     if (r < this.IN) return;
     const ids = this.visible();
+    // primero los más pequeños: llegan antes y apenas cuestan
     await Promise.all(ids.map(id => this.load(id)));
-    if (MAP.rel() < this.OUT) return;
-    for (const id of ids) if (this.set(id, true)) changed.add(id);
-    this.apply(changed);
+    if (MAP._moving || MAP.rel() < this.OUT) return;
+    this.queue(ids.filter(id => this.geo[id] && D.byId[id].geometry !== this.geo[id]).map(id => [id, true]));
   },
-  apply(changed) {
-    if (!changed.size) return;
-    MAP.cty.filter(d => changed.has(d.id)).attr('d', D.path);
+  // cambia los contornos de uno en uno, cada uno en su propio fotograma, para no bloquear la pantalla
+  queue(jobs) {
+    this.jobs = jobs; if (this._raf) return;
+    const step = () => {
+      this._raf = null; if (MAP._moving || !this.jobs.length) return;
+      const t0 = performance.now(), done = new Set();
+      while (this.jobs.length && performance.now() - t0 < 12) { const [id, hd] = this.jobs.shift(); if (this.set(id, hd)) { this.draw(id); done.add(id); } }
+      if (done.size) MAP.emit('hd', done);
+      if (this.jobs.length) this._raf = requestAnimationFrame(step);
+    };
+    this._raf = requestAnimationFrame(step);
+  },
+  draw(id) {
+    const d = D.path(D.byId[id]);
+    MAP.cty.filter(x => x.id === id).attr('d', d);
     // contornos de resaltado que siguen a un país concreto
-    MAP.gz.selectAll('[data-hd]').each(function () { const i = this.getAttribute('data-hd'); if (changed.has(i)) this.setAttribute('d', D.path(D.byId[i])); });
-    MAP.emit('hd', changed);
+    MAP.gz.selectAll(`[data-hd="${id}"]`).attr('d', d);
   },
   // geometría con el máximo detalle disponible, sin tocar el mapa (siluetas, juegos)
   async best(id) { await this.load(id); return this.geo[id] || (this.lo[id] || D.byId[id].geometry); }
@@ -234,6 +249,12 @@ const MAP = {
   emit(ev, ...a) { (this.listeners[ev] || []).forEach(f => f(...a)); },
   init() {
     const svg = this.svg = d3.select('#map');
+    // En pantallas táctiles el mapa se mueve como una imagen ya pintada mientras dura el gesto o la animación
+    // (lo hace la tarjeta gráfica) y solo se vuelve a dibujar, nítido, al terminar. Así no va a tirones.
+    this.fast = matchMedia('(pointer: coarse)').matches;
+    const stage = document.createElement('div'); stage.className = 'mapstage' + (this.fast ? ' fast' : '');
+    svg.node().parentNode.insertBefore(stage, svg.node()); stage.appendChild(svg.node());
+    this.stage = d3.select(stage); this.tc = d3.zoomIdentity; this.ox = 0; this.oy = 0;
     const defs = svg.append('defs');
     defs.append('clipPath').attr('id', 'sphereClip').append('path').attr('d', D.ppath({ type: 'Sphere' }));
     this.gz = svg.append('g');
@@ -245,9 +266,12 @@ const MAP = {
     this.gPhys = g.append('g').attr('display', 'none');
     this.gSpecial = g.append('g');
     this.gHL = g.append('g');
-    this.gMarks = g.append('g');
-    this.gLabels = g.append('g');
-    this.gTop = g.append('g');
+    // nombres y círculos de países pequeños en una capa aparte, que se oculta mientras el mapa se mueve
+    const top = this.svgTop = d3.select(stage).append('svg').attr('id', 'mapTop').attr('aria-hidden', 'true');
+    this.gz2 = top.append('g');
+    this.gMarks = this.gz2.append('g');
+    this.gLabels = this.gz2.append('g');
+    this.gTop = this.gz2.append('g');
     // relieve: imagen general + teselas de alta resolución
     const P = D.params, sc = P.w / D.W;
     this.gRelief.append('image').attr('href', 'relief/relief_lo.jpg').attr('x', 0).attr('y', 0).attr('width', D.W).attr('height', D.H).attr('preserveAspectRatio', 'none');
@@ -272,20 +296,46 @@ const MAP = {
     bind(this.cty); bind(this.mk);
     svg.on('pointermove.tip', move);
     svg.on('click.bg', ev => { if (this._dragged) return; this.emit('click', null, ev, this.toWorld(ev)); });
-    this.zoom = d3.zoom().scaleExtent([0.2, 200]).on('start', () => { this._dragged = false; }).on('zoom', ev => {
+    const node = svg.node();
+    this.zoom = d3.zoom().scaleExtent([0.2, 200]).on('start', () => { this._dragged = false; this._moving = true; }).on('zoom', ev => {
       if (ev.sourceEvent && ev.sourceEvent.type === 'mousemove') this._dragged = true;
-      this.t = ev.transform; this.k = ev.transform.k; this.gz.attr('transform', ev.transform); this.onZoom(); this.emit('zoom', ev.transform);
-    }).on('end', () => { setTimeout(() => this._dragged = false, 0); this.onZoomEnd(); this.emit('zoomend'); });
-    svg.call(this.zoom).on('dblclick.zoom', null);
-    $('#zin').onclick = () => svg.transition().duration(300).call(this.zoom.scaleBy, 1.8);
-    $('#zout').onclick = () => svg.transition().duration(300).call(this.zoom.scaleBy, 1 / 1.8);
+      this.t = ev.transform; this.k = ev.transform.k;
+      if (this.fast) {
+        // solo se mueve la capa ya pintada: escala relativa a lo último que se dibujó
+        const t = ev.transform, c = this.tc, s = t.k / c.k;
+        node.style.transform = `translate(${t.x - s * c.x}px,${t.y - s * c.y}px) scale(${s})`;
+        if (!this._hidTop && (Math.abs(s - 1) > 0.002 || Math.abs(t.x - c.x) > 2 || Math.abs(t.y - c.y) > 2)) { this._hidTop = true; this.svgTop.classed('away', true); }
+        if (this._rafHide == null) this._rafHide = requestAnimationFrame(() => { this._rafHide = null; if (this._moving) $('#tip').hidden = true; });
+      } else { this.gz.attr('transform', ev.transform); this.gz2.attr('transform', ev.transform); this.onZoom(); }
+      this.emit('zoom', ev.transform);
+    }).on('end', () => {
+      this._moving = false; setTimeout(() => this._dragged = false, 0);
+      if (this.fast) this.commit();
+      this.onZoomEnd(); this.emit('zoomend');
+    });
+    this.stage.call(this.zoom).on('dblclick.zoom', null);
+    $('#zin').onclick = () => this.stage.transition().duration(300).call(this.zoom.scaleBy, 1.8);
+    $('#zout').onclick = () => this.stage.transition().duration(300).call(this.zoom.scaleBy, 1 / 1.8);
     $('#zhome').onclick = () => this.home();
     new ResizeObserver(debounce(() => this.resize(), 80)).observe($('#mapwrap'));
     this.resize(true);
   },
+  // dibuja de verdad la posición actual (una sola vez, al acabar el gesto) y quita el desplazamiento provisional
+  commit() {
+    const n = this.svg.node();
+    this.gz.attr('transform', this.t); this.gz2.attr('transform', this.t); this.tc = this.t; this.onZoom();
+    n.style.transform = '';
+    if (this._hidTop) { this._hidTop = false; requestAnimationFrame(() => this.svgTop.classed('away', false)); }
+  },
   toWorld(ev) { const p = d3.pointer(ev, this.svg.node()); return this.t.invert(p); },
   resize(first) {
     const r = $('#mapwrap').getBoundingClientRect(); this.vw = r.width; this.vh = r.height;
+    if (this.fast) {
+      // margen pintado alrededor de lo visible, para que al arrastrar o alejar no aparezcan huecos en blanco
+      const ox = this.ox = Math.round(r.width * 0.35), oy = this.oy = Math.round(r.height * 0.35), n = this.svg.node();
+      n.setAttribute('viewBox', `${-ox} ${-oy} ${r.width + 2 * ox} ${r.height + 2 * oy}`);
+      Object.assign(n.style, { left: -ox + 'px', top: -oy + 'px', width: r.width + 2 * ox + 'px', height: r.height + 2 * oy + 'px', transformOrigin: `${ox}px ${oy}px` });
+    }
     this.fitK = Math.min(this.vw / D.W, this.vh / D.H) * 0.98;
     this.zoom.scaleExtent([this.fitK * 0.8, this.fitK * 120]).translateExtent([[-D.W * 0.25, -D.H * 0.35], [D.W * 1.25, D.H * 1.35]]);
     if (first) this.home(0);
@@ -299,7 +349,9 @@ const MAP = {
     let k = Math.min(w / bw, hh / bh) * 0.88; k = Math.max(this.fitK * minK, Math.min(k, this.fitK * maxK));
     const cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2;
     const t = d3.zoomIdentity.translate(p.l + w / 2 - k * cx, p.t + hh / 2 - k * cy).scale(k);
-    (dur ? this.svg.transition().duration(dur) : this.svg).call(this.zoom.transform, t);
+    if (!dur) return this.stage.call(this.zoom.transform, t);
+    // el vuelo empieza en el fotograma siguiente: así el trabajo de montar el panel no se come el principio de la animación
+    cancelAnimationFrame(this._fitRaf); this._fitRaf = requestAnimationFrame(() => this.stage.transition().duration(dur).ease(d3.easeCubicInOut).call(this.zoom.transform, t));
   },
   home(dur = 600) { this.fit([[0, 0], [D.W, D.H]], { dur, maxK: 1, minK: 0.8 }); },
   rel() { return this.k / this.fitK; },

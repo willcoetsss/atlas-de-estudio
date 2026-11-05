@@ -95,11 +95,11 @@ const EXPLORE = {
     if (!id) return;
     // territorios del mismo país (misma línea, discontinua)
     const e = D.info[id];
-    if (o.terr) for (const t of (D.parts[id] || [])) { const f = D.byId[t]; gH.append('path').attr('class', 'ln ln-terr').attr('d', P(f)); }
+    if (o.terr) for (const t of (D.parts[id] || [])) { const f = D.byId[t]; gH.append('path').attr('class', 'ln ln-terr').attr('data-hd', t).attr('d', P(f)); }
     // contorno del país
     const f = D.byId[id];
-    gH.append('path').attr('class', 'ln ln-sel-halo').attr('d', P(f));
-    gH.append('path').attr('class', 'ln ln-sel').attr('d', P(f));
+    gH.append('path').attr('class', 'ln ln-sel-halo').attr('data-hd', f.id).attr('d', P(f));
+    gH.append('path').attr('class', 'ln ln-sel').attr('data-hd', f.id).attr('d', P(f));
     if (D.tiny.find(t => t.id === id)) { const t = D.tiny.find(t => t.id === id); gH.append('circle').attr('class', 'ln ln-sel').attr('cx', t.x).attr('cy', t.y).attr('r', 0.9); }
     // ciudades
     this.cities();
