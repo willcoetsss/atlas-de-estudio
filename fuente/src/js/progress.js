@@ -26,7 +26,7 @@ const PROG = {
     const tname = this.type === 'all' ? 'todos los tipos' : POL_TYPES.find(t => t.m === this.type).n;
     const stackBar = c => { const n = c.reduce((a, b) => a + b, 0) || 1; return `<div class="track">${[3, 2, 1, 0].map(l => `<span style="width:${c[l] / n * 100}%;background:${LEVELS[l].c}" title="${LEVELS[l].n}: ${c[l]}"></span>`).join('')}</div>`; };
     $('#page').innerHTML = `<div class="page-inner stack" style="gap:22px">
-      <header class="stack" style="gap:6px"><div class="eyebrow">Progreso</div><h2>Lo que ya dominas</h2><p class="muted">La app guarda cada país por tipo de pregunta: saberte la capital de Malí no cuenta como saberte su bandera.</p></header>
+      <header class="stack" style="gap:6px"><h1>Tu progreso</h1><p class="muted">La app guarda cada país por tipo de pregunta: saberte la capital de Malí no cuenta como saberte su bandera.</p></header>
       <div class="statrow">
         <div class="card bigstat"><span class="eyebrow">Respuestas</span><b>${nf.format(tot.n)}</b><span class="small muted">${acc} % de aciertos</span></div>
         <div class="card bigstat"><span class="eyebrow">Racha</span><b>${STORE.streak()}</b><span class="small muted">${STORE.streak() === 1 ? 'día seguido' : 'días seguidos'} estudiando</span></div>
@@ -46,6 +46,7 @@ const PROG = {
         <div class="card stack"><h3>Accidentes geográficos</h3>${stackBar(pc)}<p class="small muted">${pc[3]} dominados, ${pc[2]} repasando, ${pc[1]} aprendiendo.</p>${physWorst.length ? `<div class="small"><b>Más fallados:</b> ${physWorst.map(k => { const [m, id] = k.split('|'); return esc(m === 'ps' ? 'mares de ' + nameOf(id) : (D.pitems[id] || {}).n || id); }).join(', ')}</div>` : ''}</div>
         <div class="card stack"><h3>Cartografía</h3>${stackBar(cc)}<p class="small muted">${cc[3]} dominados, ${cc[2]} repasando, ${cc[1]} aprendiendo.</p></div>
       </div>
+      ${TRIVIA.progressCard()}
       <div class="card stack">
         <h3>Apariencia</h3>
         <div class="seg" role="group" aria-label="Tema">${[['', 'Automático'], ['light', 'Claro'], ['dark', 'Oscuro']].map(([v, n]) => `<button data-theme-set="${v}" aria-pressed="${(lsGet('atlas-theme') || '') === v}">${n}</button>`).join('')}</div>
@@ -67,7 +68,7 @@ const PROG = {
     $$('[data-go]', P).forEach(b => b.onclick = () => { switchTab('explorar'); EXPLORE.select(b.dataset.go); });
     const json = () => JSON.stringify(STORE.d);
     $('#exp').onclick = async () => {
-      const fn = 'atlas-progreso-' + new Date().toISOString().slice(0, 10) + '.json';
+      const fn = 'ultimate-atlas-progreso-' + new Date().toISOString().slice(0, 10) + '.json';
       try { const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null; if (dl) { await dl.save({ filename: fn, data: json() }); toast('Progreso exportado'); return; } } catch (e) { if (e && e.code === 'declined') return; }
       if (!window.claude) { try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([json()], { type: 'application/json' })); a.download = fn; document.body.appendChild(a); a.click(); a.remove(); toast('Progreso exportado'); return; } catch (e) { } }
       $('#expBox').hidden = false; $('#expTa').value = json(); toast('Copia el texto para guardarlo');

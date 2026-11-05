@@ -13,16 +13,16 @@ head = '''<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Atlas interactivo para estudiar países, capitales, banderas, accidentes geográficos y cartografía.">
-<meta name="theme-color" content="#fbfcfc" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#141f28" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f3f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0b0b" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Atlas">
+<meta name="apple-mobile-web-app-title" content="Ultimate Atlas">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta property="og:title" content="Atlas de Estudio">
+<meta property="og:title" content="Ultimate Atlas">
 <meta property="og:description" content="Aprende países, capitales, banderas, accidentes geográficos y cartografía.">
 <meta property="og:image" content="icons/icon-512.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -31,10 +31,10 @@ head = '''<!doctype html>
 '''
 open(os.path.join(dst, 'index.html'), 'w').write(head + body + '\n</body>\n</html>\n')
 json.dump({
-    'name': 'Atlas de Estudio', 'short_name': 'Atlas', 'lang': 'es',
+    'name': 'Ultimate Atlas', 'short_name': 'Ultimate Atlas', 'lang': 'es',
     'description': 'Atlas interactivo para estudiar geografía',
     'start_url': './', 'scope': './', 'display': 'standalone', 'orientation': 'landscape',
-    'background_color': '#e9eef0', 'theme_color': '#fbfcfc',
+    'background_color': '#f4f3f1', 'theme_color': '#f4f3f1',
     'icons': [{'src': 'icons/icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any'},
               {'src': 'icons/icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any maskable'}]
 }, open(os.path.join(dst, 'manifest.webmanifest'), 'w'), ensure_ascii=False, indent=2)

@@ -73,19 +73,19 @@ const PHYS = {
   hover(id, ev) { if (!id) return tooltip(null); const e = D.info[id]; if (e) tooltip(`<b>${esc(e.name)}</b><span class="muted small">Pulsa para ver sus accidentes</span>`, ev); },
   click(id) { if (!id) return; this.select(baseId(id)); },
   intro() {
-    setPanel(`<div class="stack"><div class="eyebrow">Mapa físico</div><h2>Mares, cordilleras, ríos y picos</h2>
+    setPanel(`<div class="stack"><h1>Mares, cordilleras, ríos y picos</h1>
       <p>Pulsa un país para ver la lista de sus accidentes geográficos, o pulsa cualquier nombre del mapa para resaltarlo.</p>
       <p class="muted small">${Object.keys(D.pitems).length} accidentes: ${PHY_GROUPS.map(g => g.n.toLowerCase()).join(', ')}.</p>
       <div class="sec"><h4>Prueba con</h4><div class="chips">${['ESP', 'ITA', 'CHL', 'NPL', 'EGY', 'IDN', 'USA', 'NOR'].map(c => `<button class="chip" data-go="${c}">${esc(nameOf(c))}</button>`).join('')}</div></div>
-      <div class="sec"><h4>Grandes accidentes</h4><div class="chips">${Object.entries(D.pitems).filter(([id, it]) => it.r === 0 && ['cordillera', 'río', 'desierto', 'océano'].includes(it.c)).slice(0, 14).map(([id, it]) => `<button class="chip" data-f="${id}">${esc(it.n)}</button>`).join('')}</div></div></div>`);
+      <div class="sec"><h4>Grandes accidentes</h4><div class="chips">${(() => { const seen = new Set(); return Object.entries(D.pitems).filter(([id, it]) => it.r <= 1 && ['cordillera', 'río', 'desierto', 'océano'].includes(it.c) && !seen.has(it.n) && seen.add(it.n)).slice(0, 14); })().map(([id, it]) => `<button class="chip" data-f="${id}">${esc(it.n)}</button>`).join('')}</div></div></div>`);
     $$('[data-go]', $('#panelBody')).forEach(b => b.onclick = () => this.select(b.dataset.go));
     $$('[data-f]', $('#panelBody')).forEach(b => b.onclick = () => this.selectFeature(b.dataset.f));
   },
   select(id, fly = true) {
     if (!D.info[id]) return;
     this.sel = id; this.feat = null; MAP.gHL.selectAll('*').remove();
-    const f = D.byId[id]; MAP.gHL.append('path').attr('class', 'ln ln-sel-halo').attr('d', D.path(f)); MAP.gHL.append('path').attr('class', 'ln ln-sel').attr('d', D.path(f));
-    for (const t of (D.parts[id] || []).filter(t => D.byId[t].properties.kind === 'far')) MAP.gHL.append('path').attr('class', 'ln ln-terr').attr('d', D.path(D.byId[t]));
+    const f = D.byId[id]; MAP.gHL.append('path').attr('class', 'ln ln-sel-halo').attr('data-hd', id).attr('d', D.path(f)); MAP.gHL.append('path').attr('class', 'ln ln-sel').attr('data-hd', id).attr('d', D.path(f));
+    for (const t of (D.parts[id] || []).filter(t => D.byId[t].properties.kind === 'far')) MAP.gHL.append('path').attr('class', 'ln ln-terr').attr('data-hd', t).attr('d', D.path(D.byId[t]));
     if (fly) MAP.fit(homeBounds(id), { maxK: 9 });
     this.panel(); this.layout();
   },
@@ -95,7 +95,7 @@ const PHYS = {
     const groups = PHY_GROUPS.map(g => ({ g, items: list.filter(f => g.c.includes(D.pitems[f].c)).sort((a, b) => (D.pitems[a].r - D.pitems[b].r) || ((D.pitems[b].e || 0) - (D.pitems[a].e || 0))) })).filter(x => x.items.length);
     setPanel(`<div class="stack">
       <div class="eyebrow">Accidentes geográficos</div>
-      <div class="row" style="gap:12px;flex-wrap:nowrap">${flagBox(id, 34, "inl")}<h2>${esc(e.name)}</h2></div>
+      <div class="row" style="gap:12px;flex-wrap:nowrap">${flagBox(id, 34, "inl")}<h1>${esc(e.name)}</h1></div>
       ${groups.map(({ g, items }) => `<div class="sec"><h4>${g.n} <span class="muted">${items.length}</span></h4><ul class="list">${items.map(f => { const it = D.pitems[f]; return `<li><button data-f="${f}"><span>${esc(it.n)}</span><span class="meta">${it.e ? nf.format(it.e) + ' m' : esc(it.c)}</span></button></li>`; }).join('')}</ul></div>`).join('') || '<p class="muted">No hay accidentes registrados para este territorio a esta escala.</p>'}
       <div class="row"><button class="btn sm" id="toPol">Ver ficha política</button></div>
     </div>`);
@@ -112,12 +112,12 @@ const PHYS = {
   },
   featCard(fid, inline) {
     const it = D.pitems[fid]; const cs = [...(D.pRev[fid] || [])].filter(c => D.info[c] && (D.info[c].state || D.info[c].kind === 'territory')).sort((a, b) => nameOf(a).localeCompare(nameOf(b), 'es'));
-    const html = `<div class="card stack" style="gap:8px"><div class="eyebrow">${esc(it.c)}</div><h3>${esc(it.n)}</h3>
+    const html = `<div class="card stack" style="gap:8px"><div><${inline ? 'h3' : 'h1'} style="font-size:${inline ? 18 : 22}px">${esc(it.n)}</${inline ? 'h3' : 'h1'}><div class="eyebrow">${esc(it.c[0].toUpperCase() + it.c.slice(1))}</div></div>
       ${it.e ? `<div>Altitud: <b class="kv">${nf.format(it.e)} m</b></div>` : ''}
       ${cs.length ? `<div class="small muted">${it.c === 'océano' || it.c === 'mar' ? 'Baña' : 'Se extiende por'} ${cs.length} ${cs.length === 1 ? 'país o territorio' : 'países o territorios'}:</div><div class="chips">${cs.slice(0, 40).map(c => `<button class="chip" data-go="${c}">${esc(nameOf(c))}</button>`).join('')}</div>` : ''}
       <div class="small muted">Importancia: ${it.r <= 1 ? 'muy alta' : it.r <= 3 ? 'alta' : it.r <= 5 ? 'media' : 'local'} (rango ${it.r} de Natural Earth)</div></div>`;
     if (inline) { const old = $('#featCard'); if (old) old.remove(); const d = document.createElement('div'); d.id = 'featCard'; d.innerHTML = html; $('#panelBody .stack').insertBefore(d, $('#panelBody .stack').children[2]); $('#panel').scrollTop = 0; }
-    else setPanel(`<div class="stack"><div class="eyebrow">Accidente geográfico</div>${html}${this.sel ? `<button class="btn sm" id="backC">Volver a ${esc(nameOf(this.sel))}</button>` : ''}</div>`);
+    else setPanel(`<div class="stack">${html}${this.sel ? `<button class="btn sm" id="backC">Volver a ${esc(nameOf(this.sel))}</button>` : ''}</div>`);
     $$('[data-go]', $('#panelBody')).forEach(b => b.onclick = () => this.select(b.dataset.go));
     const bk = $('#backC'); if (bk) bk.onclick = () => this.select(this.sel);
   }

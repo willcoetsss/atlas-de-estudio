@@ -60,6 +60,7 @@ const EXPLORE = {
   key(e) { if (e.key === 'Escape' && this.sel && !(e.target && e.target.tagName === 'INPUT')) this.deselect(); },
   select(id, fly = true) {
     if (!D.info[id]) return;
+    if (D.byId[id]) HD.load(id);
     this.sel = id; this.openDispute = null; this.panel(); this.draw(); if (fly) this.fly();
   },
   fly() {
@@ -114,7 +115,7 @@ const EXPLORE = {
   intro() {
     const n = D.states.length;
     setPanel(`<div class="stack">
-      <div class="eyebrow">Explorar</div><h2>Elige cualquier país</h2>
+      <h1>Elige un país</h1>
       <p>Toca un país en el mapa o búscalo arriba. Para quitar la selección, toca el mar o el botón «Quitar». Verás su ficha completa y, sobre el mapa, sus territorios lejanos, zonas en disputa, cambios de frontera recientes y antiguas colonias.</p>
       <p class="muted small">${n} Estados (193 de la ONU, más Ciudad del Vaticano, Palestina, Kosovo y Taiwán) y unos 50 territorios. Los países diminutos tienen un círculo para poder pulsarlos.</p>
       <div class="sec"><h4>Prueba con</h4><div class="chips">${['DNK', 'ESP', 'GBR', 'FRA', 'IND', 'UKR', 'MAR', 'ISR', 'CHN', 'ARG'].map(c => `<button class="chip" data-go="${c}">${esc(nameOf(c))}</button>`).join('')}</div></div>
@@ -145,7 +146,7 @@ const EXPLORE = {
     const dItem = d => `<li><button data-disp="${d.id}"><span class="dot" style="background:var(--dispute-${d.nivel === 'rojo' ? 'red' : 'orange'})"></span><span>${esc(d.name)}</span><span class="meta">${d.parties.filter(p => p !== id).map(nameOf).slice(0, 2).join(', ')}</span></button>${this.openDispute === d.id ? `<div class="card small" style="margin:4px 0 8px;display:grid;gap:6px"><div><b>Países implicados:</b> ${d.parties.map(p => D.info[p] ? `<button class="linkbtn" data-go="${p}">${esc(nameOf(p))}</button>` : esc(p)).join(', ')}</div><div><b>Control de facto:</b> ${esc(d.control)}</div><div>${esc(d.why)}</div></div>` : ''}</li>`;
     setPanel(`<div class="stack">
       <div class="panel-top"><div class="eyebrow">${esc(isState ? (e.reg || '') : (e.kind === 'far' ? 'Parte lejana de un país' : 'Territorio'))}</div><button class="xbtn" id="desel" title="Quitar la selección (Esc)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>Quitar</button></div>
-      <div><h2>${esc(e.name)}</h2>${e.off && e.off !== e.name ? `<div class="muted small">${esc(e.off)}</div>` : ''}</div>
+      <div><h1>${esc(e.name)}</h1>${e.off && e.off !== e.name ? `<div class="muted small">${esc(e.off)}</div>` : ''}</div>
       ${flagBox(id, isLandPhone() ? 90 : 140, "flag-big")}
       ${sov}
       ${e.note ? `<p class="small">${esc(e.note)}</p>` : ''}

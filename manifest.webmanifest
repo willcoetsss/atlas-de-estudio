@@ -1,14 +1,14 @@
 {
-  "name": "Atlas de Estudio",
-  "short_name": "Atlas",
+  "name": "Ultimate Atlas",
+  "short_name": "Ultimate Atlas",
   "lang": "es",
   "description": "Atlas interactivo para estudiar geografía",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "landscape",
-  "background_color": "#e9eef0",
-  "theme_color": "#fbfcfc",
+  "background_color": "#f4f3f1",
+  "theme_color": "#f4f3f1",
   "icons": [
     {
       "src": "icons/icon-192.png",

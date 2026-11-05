@@ -41,13 +41,12 @@ const CARTO = {
   html() {
     return `<div class="page-inner carto">
     <header style="display:grid;gap:10px;padding-bottom:10px">
-      <div class="eyebrow">Cartografía general</div>
-      <h2>Cómo se dibuja la Tierra en un plano</h2>
+      <h1>Cómo se dibuja la Tierra en un plano</h1>
       <p class="lead">Coordenadas para situar cualquier punto, y proyecciones para pasar una esfera a un papel. Todo lo de esta página entra también en el examen de cartografía.</p>
       <nav class="toc">${[['coord', 'Coordenadas'], ['lineas', 'Líneas notables'], ['husos', 'Husos horarios'], ['ortodromia', 'Círculos máximos'], ['naranja', 'La piel de naranja'], ['superficies', 'Superficies de proyección'], ['propiedades', 'Qué conserva cada una'], ['explorador', 'Explorador de proyecciones'], ['tamano', 'Tamaño real']].map(([a, n]) => `<a class="chip" href="#cartografia" data-jump="${a}">${n}</a>`).join('')}</nav>
     </header>
     <section id="s-coord">
-      <div class="eyebrow">01 · Coordenadas geográficas</div>
+      <h2>Coordenadas geográficas</h2>
       <h3>Paralelos y meridianos</h3>
       <div class="split">
         <div class="figure"><svg id="globe" viewBox="0 0 520 520" style="touch-action:none;cursor:grab"></svg><figcaption>Arrastra para girar el globo. Haz clic para leer las coordenadas de un punto. La línea rosa discontinua que se tuerce no es un meridiano: es la línea internacional de cambio de fecha (ver «Líneas notables»).</figcaption></div>
@@ -63,7 +62,7 @@ const CARTO = {
       </div>
     </section>
     <section id="s-lineas">
-      <div class="eyebrow">02 · Líneas notables</div>
+      <h2>Líneas notables</h2>
       <h3>Por qué los trópicos y los círculos polares están donde están</h3>
       <div class="split">
         <div class="stack">
@@ -75,7 +74,7 @@ const CARTO = {
       </div>
     </section>
     <section id="s-husos">
-      <div class="eyebrow">03 · Husos horarios</div>
+      <h2>Husos horarios</h2>
       <h3>15° de longitud = 1 hora</h3>
       <p>La Tierra gira 360° en 24 horas, así que cada hora gira 15°. Por eso hay 24 husos teóricos de 15°, centrados en múltiplos de 15° desde Greenwich (UTC). En la práctica los países ajustan los husos a sus fronteras: China usa una sola hora para un país que abarca casi cinco husos, y España usa UTC+1 aunque casi toda la Península está en el huso de Greenwich.</p>
       <div class="figure">
@@ -87,7 +86,7 @@ const CARTO = {
       <div class="figure" style="overflow-x:auto">${tzSvg()}<figcaption>Husos teóricos. La línea internacional de cambio de fecha sigue el antimeridiano (180°) con desvíos para no partir países en dos días distintos, como Kiribati, que en 1995 la desplazó al este de sus islas.</figcaption></div>
     </section>
     <section id="s-ortodromia">
-      <div class="eyebrow">04 · Círculos máximos</div>
+      <h2>Círculos máximos</h2>
       <h3>Por qué la ruta más corta parece curva</h3>
       <div class="split">
         <div class="figure"><svg id="gcMap" viewBox="0 0 560 400"></svg><figcaption><span style="color:var(--sel)">━</span> ortodromia (círculo máximo, la ruta más corta) · <span style="color:var(--dispute-orange)">┅</span> loxodromia (rumbo constante, recta en Mercator)</figcaption></div>
@@ -100,19 +99,19 @@ const CARTO = {
       </div>
     </section>
     <section id="s-naranja">
-      <div class="eyebrow">05 · Proyecciones</div>
+      <h2>Proyecciones</h2>
       <h3>La piel de naranja: no se puede aplanar una esfera sin deformarla</h3>
       <p>Si pelas una naranja y aplastas la piel, se rompe o se estira. Con la Tierra pasa lo mismo (lo demostró Gauss en 1827): <b>ningún mapa plano conserva a la vez áreas, ángulos y distancias</b>. Cuantos más cortes, menos deformación, pero más huecos.</p>
       <div class="figure"><svg id="peel" viewBox="0 0 900 440"></svg><div class="row"><span class="small muted">Gajos:</span><div class="seg" id="peelSeg">${[1, 4, 8, 12, 24].map(n => `<button data-g="${n}" aria-pressed="${n === 12}">${n}</button>`).join('')}</div></div><figcaption>Proyección sinusoidal interrumpida en gajos, como la piel de una naranja.</figcaption></div>
     </section>
     <section id="s-superficies">
-      <div class="eyebrow">06 · Clasificación por superficie</div>
+      <h2>Clasificación por superficie</h2>
       <h3>Cilindro, cono o plano</h3>
       <p>Muchas proyecciones se entienden imaginando una superficie desarrollable que envuelve o toca el globo, sobre la que se proyecta y que después se «desenrolla».</p>
       <div class="grid2">${surfFigs()}</div>
     </section>
     <section id="s-propiedades">
-      <div class="eyebrow">07 · Clasificación por propiedad</div>
+      <h2>Clasificación por propiedad</h2>
       <h3>Cada proyección sacrifica algo</h3>
       <div class="grid2">
         ${[['Conformes', 'Conservan los <b>ángulos</b> y las formas en zonas pequeñas. Deforman las áreas.', 'Mercator, Mercator transversa, Lambert cónica, estereográfica', 'var(--sel)'], ['Equivalentes', 'Conservan las <b>áreas</b> (los tamaños relativos). Deforman las formas.', 'Gall-Peters, Mollweide, Equal Earth, Albers, Goode', 'var(--ok)'], ['Equidistantes', 'Conservan las <b>distancias</b> desde un punto o a lo largo de ciertas líneas.', 'Azimutal equidistante, equirrectangular', 'var(--dispute-orange)'], ['Afilácticas (de compromiso)', 'No conservan nada exacto, pero <b>reparten</b> la deformación para que el conjunto se vea equilibrado.', 'Robinson, Winkel Tripel, ortográfica, gnomónica', 'var(--colony)']].map(([t, d, ex, c]) => `<div class="card stack" style="gap:6px;border-top:4px solid ${c}"><h3>${t}</h3><p>${d}</p><p class="small muted">Ejemplos: ${ex}</p></div>`).join('')}
@@ -120,7 +119,7 @@ const CARTO = {
       <p class="small muted">Una proyección no puede ser a la vez conforme y equivalente.</p>
     </section>
     <section id="s-explorador">
-      <div class="eyebrow">08 · Explorador de proyecciones</div>
+      <h2>Explorador de proyecciones</h2>
       <h3>Mira cómo deforma cada una</h3>
       <div class="split">
         <div class="figure"><canvas id="projCv" width="720" height="440" aria-label="Mapa del mundo en la proyección elegida"></canvas>
@@ -131,7 +130,7 @@ const CARTO = {
       </div>
     </section>
     <section id="s-tamano" style="border-bottom:0">
-      <div class="eyebrow">09 · Tamaño real</div>
+      <h2>Tamaño real</h2>
       <h3>Arrastra un país hacia el ecuador</h3>
       <div class="split">
         <div class="figure"><svg id="tsMap" viewBox="0 0 600 520" style="touch-action:none"></svg><figcaption>Mercator. África, en gris oscuro, sirve de referencia. Arrastra el país y mira cómo «encoge» al acercarse al ecuador: su tamaño real no cambia.</figcaption></div>

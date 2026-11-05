@@ -1,4 +1,4 @@
-# Cómo publicar el Atlas de Estudio en GitHub
+# Cómo publicar Ultimate Atlas en GitHub
 
 Al terminar tendrás la app en una dirección web propia, gratis, que funciona en cualquier ordenador o móvil:
 

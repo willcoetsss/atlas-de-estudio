@@ -102,6 +102,49 @@ function homeBounds(id) {
   return D.bbox[id];
 }
 
+/* ============ contornos detallados (1:10m) bajo demanda ============ */
+// El mapa general usa contornos simplificados. Al acercarse, cada país visible se sustituye por su
+// versión detallada (data/hd/<id>.json); al volver a la vista del mundo se recupera la ligera.
+const HD = {
+  geo: {}, lo: {}, on: new Set(), prom: {}, IN: 2.4, OUT: 1.7,
+  load(id) {
+    if (this.geo[id]) return Promise.resolve(this.geo[id]);
+    if (this.prom[id]) return this.prom[id];
+    return this.prom[id] = fetch('data/hd/' + id + '.json').then(r => r.ok ? r.json() : null).then(t => {
+      if (!t) return null; const f = topojson.feature(t, t.objects.c); const g = f.geometry || (f.features && f.features[0] && f.features[0].geometry); return (this.geo[id] = g || null);
+    }).catch(() => null);
+  },
+  set(id, hd) {
+    const f = D.byId[id]; if (!f) return false;
+    if (!this.lo[id]) this.lo[id] = f.geometry;
+    const g = hd ? this.geo[id] : this.lo[id]; if (!g || f.geometry === g) return false;
+    f.geometry = g; if (hd) this.on.add(id); else this.on.delete(id); return true;
+  },
+  visible() {
+    const x0 = MAP.t.invertX(0), x1 = MAP.t.invertX(MAP.vw), y0 = MAP.t.invertY(0), y1 = MAP.t.invertY(MAP.vh);
+    return D.cfeat.filter(f => { const b = D.bbox[f.id]; return b && b[1][0] > x0 && b[0][0] < x1 && b[1][1] > y0 && b[0][1] < y1; }).map(f => f.id);
+  },
+  async update() {
+    const r = MAP.rel(); const changed = new Set();
+    if (r < this.OUT) { for (const id of [...this.on]) if (this.set(id, false)) changed.add(id); return this.apply(changed); }
+    if (r < this.IN) return;
+    const ids = this.visible();
+    await Promise.all(ids.map(id => this.load(id)));
+    if (MAP.rel() < this.OUT) return;
+    for (const id of ids) if (this.set(id, true)) changed.add(id);
+    this.apply(changed);
+  },
+  apply(changed) {
+    if (!changed.size) return;
+    MAP.cty.filter(d => changed.has(d.id)).attr('d', D.path);
+    // contornos de resaltado que siguen a un país concreto
+    MAP.gz.selectAll('[data-hd]').each(function () { const i = this.getAttribute('data-hd'); if (changed.has(i)) this.setAttribute('d', D.path(D.byId[i])); });
+    MAP.emit('hd', changed);
+  },
+  // geometría con el máximo detalle disponible, sin tocar el mapa (siluetas, juegos)
+  async best(id) { await this.load(id); return this.geo[id] || (this.lo[id] || D.byId[id].geometry); }
+};
+
 /* ============ memoria de aprendizaje (repetición espaciada) ============ */
 const INTERVALS_MIN = [1, 10, 60 * 24, 60 * 24 * 3, 60 * 24 * 8, 60 * 24 * 21, 60 * 24 * 60];
 const LEVELS = [{ n: 'Nuevo', c: 'var(--m0)' }, { n: 'Aprendiendo', c: 'var(--m1)' }, { n: 'Repasando', c: 'var(--m2)' }, { n: 'Dominado', c: 'var(--m4)' }];
@@ -269,6 +312,7 @@ const MAP = {
   },
   onZoomEnd() {
     if (this.mode === 'physical' || this.mode === 'physquiz') this.loadTiles();
+    HD.update();
     if (this.layoutHook) this.layoutHook();
   },
   loadTiles() {
@@ -358,7 +402,7 @@ function initShell() {
   ptog.onclick = () => { if (isSheet()) $('#panel').classList.toggle('collapsed'); else $('#main').classList.toggle('nopanel'); syncTog(); setTimeout(() => MAP.resize(), 40); };
   APP.syncTog = syncTog;
   try { if (sessionStorage.getItem('atlas-portrait')) document.documentElement.classList.add('allow-portrait'); } catch (e) { }
-  $('#keepPortrait').onclick = () => { document.documentElement.classList.add('allow-portrait'); try { sessionStorage.setItem('atlas-portrait', '1'); } catch (e) { } setTimeout(() => MAP.resize(), 40); };
+  $('#keepPortrait').onclick = () => { document.documentElement.classList.add('allow-portrait'); try { sessionStorage.setItem('atlas-portrait', '1'); } catch (e) { } setTimeout(() => { MAP.resize(); MAP.home(0); }, 40); };
   const fs = $('#fsLand');
   if (document.fullscreenEnabled && screen.orientation && screen.orientation.lock) fs.hidden = false;
   fs.onclick = async () => { try { await document.documentElement.requestFullscreen(); await screen.orientation.lock('landscape'); } catch (e) { toast('Tu navegador no deja girar la pantalla: gira el móvil a mano'); } };

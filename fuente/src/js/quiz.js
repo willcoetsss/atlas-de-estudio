@@ -179,9 +179,10 @@ const QUIZ = {
     }
   },
   /* silueta aislada: proyección azimutal equivalente centrada en el país, para que su forma no salga deformada */
-  silo(id) {
-    const el = $('#silo'); if (!id) { el.hidden = true; el.innerHTML = ''; return; }
-    const f = silFeature(id); const r = $('#mapwrap').getBoundingClientRect(); const pd = MAP.pad();
+  async silo(id) {
+    const el = $('#silo'); this._siloId = id; if (!id) { el.hidden = true; el.innerHTML = ''; return; }
+    const geo = await HD.best(id); if (this._siloId !== id) return;
+    const f = silFeature(id, geo); const r = $('#mapwrap').getBoundingClientRect(); const pd = MAP.pad();
     const W = Math.max(200, r.width), H = Math.max(160, r.height), m = Math.min(W, H) * 0.1;
     const c = d3.geoCentroid(f);
     const pr = d3.geoAzimuthalEqualArea().rotate([-c[0], -c[1]]).fitExtent([[m + 10, m + 14], [W - m - 52, H - m - Math.max(14, pd.b - 20)]], f);
@@ -316,7 +317,7 @@ const QUIZ = {
       const media = q.flag ? flagBox(q.flag, isLandPhone() ? 110 : 180, "qflag") : q.proj ? `<div class="figure" style="padding:6px">${projThumb(q.proj, 360, 220)}</div>` : '';
       body = `<div class="qcard">
         <div class="row" style="justify-content:space-between"><span class="eyebrow">${esc(typeName)}</span><span class="lvl"><span class="dot" style="background:${LEVELS[lvl].c}"></span>${LEVELS[lvl].n}</span></div>
-        <div class="qprompt">${q.prompt}</div>
+        <h1 class="qprompt">${q.prompt}</h1>
         ${media}${ans}
         <div class="fb" id="qfb" hidden></div>
         ${fb}
@@ -370,9 +371,9 @@ const QUIZ = {
     $$('.opts.fresh', B).forEach(o => o.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') o.classList.remove('fresh'); }, { once: true }));
   }
 };
-function silFeature(id) {
+function silFeature(id, geo) {
   // partes principales del país (sin islas lejanas y diminutas), devueltas a lon/lat
-  const f = D.byId[id]; const g = f.geometry;
+  const g = geo || D.byId[id].geometry;
   let polys = g.type === 'MultiPolygon' ? g.coordinates : [g.coordinates];
   if (polys.length > 1) {
     const info = polys.map(c => { const p = { type: 'Polygon', coordinates: c }; return { c, a: D.path.area(p), m: D.path.centroid(p) }; });
